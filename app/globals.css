@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian-base: #08090B;
+  --color-vault-surface: #12151B;
+  --color-vault-surface-elevated: #1A1E26;
+  --color-hairline-border: #282E3A;
+  --color-primary: #f2ca50;
+  --color-primary-container: #d4af37;
+  --color-champagne-gold: #E5C875;
+  --color-antique-gold: #C59B27;
+  --color-patina-bronze: #594A2B;
+  --color-coa-emerald: #10B981;
+  --color-auction-live-amber: #F59E0B;
+  --color-text-parchment: #F4F1EA;
+  --color-text-muted: #9CA3AF;
+  --color-surface-container: #1e2023;
+  --color-surface-container-high: #282a2d;
+  --color-surface-container-highest: #333538;
+  --color-surface-container-lowest: #0c0e11;
+  --color-surface-container-low: #1a1c1f;
+  --color-surface: #111317;
+  --color-surface-bright: #37393d;
+  --color-on-surface: #e2e2e6;
+  --color-on-background: #e2e2e6;
+
+  --font-display-hero: "Playfair Display", serif;
+  --font-headline-xl: "Playfair Display", serif;
+  --font-headline-lg: "Playfair Display", serif;
+  --font-headline-md: "Playfair Display", serif;
+  --font-title-lg: "Manrope", sans-serif;
+  --font-title-md: "Manrope", sans-serif;
+  --font-body-lg: "Manrope", sans-serif;
+  --font-body-md: "Manrope", sans-serif;
+  --font-body-sm: "Manrope", sans-serif;
+  --font-data-mono: "Space Grotesk", monospace;
+  --font-label-ledger: "Space Grotesk", monospace;
+  --font-label-badge: "Space Grotesk", monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-obsidian-base);
+    color: var(--color-on-background);
+    font-family: var(--font-body-md);
+  }
+}
+
+.gold-glow {
+  box-shadow: 0 0 30px -5px rgba(212, 175, 55, 0.22);
+}
+
+.gold-glow-lg {
+  box-shadow: 0 0 45px -5px rgba(212, 175, 55, 0.35);
+}
+
+.macro-reticle {
+  background: radial-gradient(circle at center, rgba(242, 202, 80, 0.15) 0%, rgba(8, 9, 11, 0.85) 75%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #08090B;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #282E3A;
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #C59B27;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.micro-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(40, 46, 58, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(40, 46, 58, 0.35) 1px, transparent 1px);
+}

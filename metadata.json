@@ -1,0 +1,6 @@
+{
+  "name": "Diamond Relics Archive Vault",
+  "description": "Arquivo soberano de memorabilia esportiva mundial, custódia fiduciária em escrow e ledger criptográfico de proveniência com certificação forense.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
