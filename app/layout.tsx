@@ -4,6 +4,14 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
   description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/diamond-relics-logo.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/diamond-relics-logo.png',
+  },
   openGraph: {
     title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
     description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
@@ -20,6 +28,8 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="pt-BR" className="dark">
       <head>
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/diamond-relics-logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

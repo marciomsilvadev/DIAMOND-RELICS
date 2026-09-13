@@ -39,18 +39,21 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
       <div className="flex items-center gap-6">
         <Link
           href="/"
-          className="text-lg md:text-xl font-['Playfair_Display'] text-[#f2ca50] tracking-widest uppercase flex items-center gap-2.5 hover:text-[#E5C875] transition-colors duration-150"
+          className="text-lg md:text-xl font-['Playfair_Display'] text-[#f2ca50] tracking-widest uppercase flex items-center gap-2.5 sm:gap-3.5 hover:text-[#E5C875] transition-colors duration-150 group"
         >
-          <span
-            className="material-symbols-outlined text-[#f2ca50] text-2xl"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            diamond
-          </span>
-          <span className="hidden sm:inline font-bold">{config.storeName}</span>
-          <span className="text-[10px] sm:text-xs font-['Space_Grotesk'] text-[#9CA3AF] tracking-normal font-normal border border-[#282E3A] px-1.5 py-0.5 rounded bg-[#12151B]">
-            {config.storeBadge}
-          </span>
+          <img
+            src="/diamond-relics-logo.png"
+            alt="Diamond Relics"
+            className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_14px_rgba(242,202,80,0.35)] group-hover:scale-105 transition-transform shrink-0"
+          />
+          <div className="flex flex-col">
+            <span className="hidden sm:inline font-bold leading-none tracking-wider text-[#f2ca50]">
+              {config.storeName || 'DIAMOND RELICS'}
+            </span>
+            <span className="hidden sm:inline text-[9px] font-['Space_Grotesk'] text-[#9CA3AF] tracking-[0.2em] uppercase mt-0.5">
+              {config.storeBadge || 'Artigos Esportivos'}
+            </span>
+          </div>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-4 text-xs font-['Space_Grotesk']">

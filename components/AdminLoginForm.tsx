@@ -64,13 +64,12 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
       <div className="max-w-md w-full relative z-10 space-y-6">
         {/* Emblema & Cabeçalho */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#12151B] border border-[#f2ca50]/40 shadow-[0_0_20px_rgba(242,202,80,0.15)] mb-1">
-            <span
-              className="material-symbols-outlined text-[#f2ca50] text-3xl"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              diamond
-            </span>
+          <div className="flex justify-center mb-1">
+            <img
+              src="/diamond-relics-logo.png"
+              alt="Diamond Relics"
+              className="h-20 sm:h-24 w-auto object-contain drop-shadow-[0_0_25px_rgba(242,202,80,0.35)]"
+            />
           </div>
 
           <div className="flex items-center justify-center gap-2">

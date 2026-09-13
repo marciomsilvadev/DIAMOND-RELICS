@@ -19,16 +19,23 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-6 border-b border-[#282E3A]">
           <div className="md:col-span-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <span
-                className="material-symbols-outlined text-[#f2ca50] text-xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                diamond
-              </span>
-              <span className="text-sm font-['Playfair_Display'] font-bold text-[#F4F1EA] uppercase tracking-wider">
-                {config.storeName}
-              </span>
+            <div className="flex items-center gap-3">
+              <img
+                src="/diamond-relics-logo.png"
+                alt="Diamond Relics"
+                className="h-14 w-auto object-contain drop-shadow-[0_0_15px_rgba(242,202,80,0.3)] shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-['Playfair_Display'] font-bold text-[#F4F1EA] uppercase tracking-wider">
+                  {config.storeName || 'DIAMOND RELICS'}
+                </span>
+                <span className="text-[10px] text-[#f2ca50] font-medium tracking-widest uppercase">
+                  Artigos Esportivos de Colecionador
+                </span>
+                <span className="text-[10px] text-[#9CA3AF] font-mono mt-0.5">
+                  @diamond.relics
+                </span>
+              </div>
             </div>
             <p className="text-[#9CA3AF] font-['Manrope'] text-xs leading-relaxed max-w-sm">
               {config.footerDescription}
