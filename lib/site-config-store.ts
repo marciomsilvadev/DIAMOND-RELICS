@@ -10,8 +10,8 @@ export interface SiteConfig {
   // Logotipo da Empresa
   customLogoUrl?: string;
 
-  // Modo de Exibição do Card em Destaque (Hero)
-  heroDisplayMode?: 'product' | 'logo' | 'custom_image';
+  // Modo de Exibição do Destaque da Home (Lado Direito do Hero)
+  heroDisplayMode?: 'product' | 'vitrine' | 'logo' | 'custom_image';
   heroSelectedProductId?: string;
   heroCustomImageUrl?: string;
   heroCustomTag?: string;
@@ -19,6 +19,7 @@ export interface SiteConfig {
   heroCustomSubtitle?: string;
   heroCustomBtnText?: string;
   heroCustomBtnLink?: string;
+  heroCustomInstagramHandle?: string;
 
   // ==========================================
   // Controle de Visibilidade dos Painéis (Janelas)
@@ -144,6 +145,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     'Relíquias esportivas originais com laudos forenses e certificado vitalício de procedência.',
   heroCustomBtnText: 'Explorar Acervo',
   heroCustomBtnLink: '/catalog',
+  heroCustomInstagramHandle: '@diamond.relics',
 
   // Visibilidade Padrão dos Painéis
   showTopRelayBar: true,

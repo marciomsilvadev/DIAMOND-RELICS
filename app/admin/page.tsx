@@ -366,6 +366,21 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
+  // Restaurar Logotipo Oficial do Hero para o Padrão
+  const handleResetHeroLogo = () => {
+    if (confirm('Deseja restaurar o brasão oficial padrão da Diamond Relics no destaque?')) {
+      const updated = {
+        ...siteConfig,
+        heroCustomImageUrl: '',
+        heroCustomInstagramHandle: '@diamond.relics',
+      };
+      setSiteConfig(updated);
+      saveStoredSiteConfig(updated);
+      setSaveConfigSuccess(true);
+      setTimeout(() => setSaveConfigSuccess(false), 4000);
+    }
+  };
+
   const openImage = (imageUrl: string, title: string, subtitle?: string) => {
     setModalData({
       isOpen: true,
@@ -943,142 +958,491 @@ export default function AdminPage() {
 
             {/* LISTAGEM DOS PAINÉIS */}
             <div className="space-y-6">
-              {/* PAINEL 0: IDENTIDADE VISUAL & LOGOTIPO DA EMPRESA */}
-              <div className="bg-[#12151B] border border-[#f2ca50]/40 rounded-lg p-5 space-y-4 shadow-[0_0_25px_rgba(242,202,80,0.06)]">
-                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              {/* PAINEL 0: TIPO DE EXIBIÇÃO NO DESTAQUE PRINCIPAL DA HOME (HERO) */}
+              <div className="bg-[#12151B] border border-[#f2ca50]/50 rounded-lg p-5 space-y-5 shadow-[0_0_30px_rgba(242,202,80,0.08)]">
+                <div className="border-b border-[#282E3A] pb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-md bg-[#f2ca50]/15 border border-[#f2ca50]/30 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[#f2ca50] text-lg">verified_user</span>
+                    <div className="w-9 h-9 rounded-md bg-[#f2ca50]/15 border border-[#f2ca50]/30 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[#f2ca50] text-xl">auto_awesome</span>
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
-                          Logotipo Oficial &amp; Identidade da Loja
+                          Tipo de Exibição no Destaque da Home (Hero)
                         </h3>
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase font-['Space_Grotesk'] bg-[#f2ca50]/20 text-[#f2ca50] border border-[#f2ca50]/30">
-                          Branding Global
+                          Quadro Principal
                         </span>
                       </div>
                       <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
-                        Altere, adicione ou remova o logotipo da marca. Atualiza automaticamente no Cabeçalho (Navbar), Rodapé, Login e Destaques.
+                        Selecione o tipo de conteúdo exibido no quadro ao lado do texto da Home: Destaque da Galeria (como era antes), Produtos da Vitrine ou Logotipo da Empresa em Tamanho Maior.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {siteConfig.heroDisplayMode === 'logo' && (
+                      <button
+                        type="button"
+                        onClick={handleResetHeroLogo}
+                        disabled={!isUserAdmin}
+                        className="px-3 py-1.5 bg-[#08090B] hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#9CA3AF] hover:text-[#F4F1EA] text-[11px] font-['Space_Grotesk'] rounded transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                        title="Restaurar o logotipo oficial padrão da Diamond Relics no destaque"
+                      >
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">restart_alt</span>
+                        Restaurar Logo Original
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* BOTÕES DE SELEÇÃO DO TIPO DE IMAGEM / DESTAQUE */}
+                <div>
+                  <label className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-[#f2ca50]">tune</span>
+                    Selecione o Tipo de Imagem / Conteúdo a ser Exibido:
+                  </label>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Botão 1: Destaque da Galeria (Como era antes) */}
                     <button
                       type="button"
-                      onClick={handleResetLogo}
-                      disabled={!isUserAdmin}
-                      className="px-3 py-1.5 bg-[#08090B] hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#9CA3AF] hover:text-[#F4F1EA] text-[11px] font-['Space_Grotesk'] rounded transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                      title="Restaurar o logotipo padrão original da Diamond Relics"
+                      onClick={() =>
+                        setSiteConfig({ ...siteConfig, heroDisplayMode: 'product' })
+                      }
+                      className={`p-4 rounded-lg border text-left transition-all flex flex-col gap-2 relative group ${
+                        !siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product'
+                          ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA] shadow-[0_0_20px_rgba(242,202,80,0.18)]'
+                          : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50 hover:text-[#F4F1EA]'
+                      }`}
                     >
-                      <span className="material-symbols-outlined text-sm text-[#f2ca50]">restart_alt</span>
-                      Restaurar Logo Original
+                      <div className="flex items-center justify-between">
+                        <div className="w-8 h-8 rounded bg-[#12151B] border border-[#282E3A] group-hover:border-[#f2ca50]/50 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base text-[#f2ca50]">photo_library</span>
+                        </div>
+                        {(!siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product') ? (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase font-['Space_Grotesk'] bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                            Ativo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#9CA3AF] font-['Space_Grotesk']">Clique p/ Ativar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs block text-[#F4F1EA]">
+                          1. Destaque da Galeria (Como era antes)
+                        </span>
+                        <span className="text-[11px] leading-tight text-[#9CA3AF] block mt-1 font-['Manrope']">
+                          Card com carrossel de fotos, miniaturas clicáveis, preço em R$ e botão Comprar.
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Botão 2: Produtos da Vitrine */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSiteConfig({ ...siteConfig, heroDisplayMode: 'vitrine' })
+                      }
+                      className={`p-4 rounded-lg border text-left transition-all flex flex-col gap-2 relative group ${
+                        siteConfig.heroDisplayMode === 'vitrine'
+                          ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA] shadow-[0_0_20px_rgba(242,202,80,0.18)]'
+                          : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50 hover:text-[#F4F1EA]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="w-8 h-8 rounded bg-[#12151B] border border-[#282E3A] group-hover:border-[#f2ca50]/50 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base text-[#f2ca50]">storefront</span>
+                        </div>
+                        {siteConfig.heroDisplayMode === 'vitrine' ? (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase font-['Space_Grotesk'] bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                            Ativo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#9CA3AF] font-['Space_Grotesk']">Clique p/ Ativar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs block text-[#F4F1EA]">
+                          2. Produtos da Vitrine
+                        </span>
+                        <span className="text-[11px] leading-tight text-[#9CA3AF] block mt-1 font-['Manrope']">
+                          Exibe os itens cadastrados na vitrine principal da loja no quadro de destaque.
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Botão 3: Logotipo da Empresa em Tamanho Maior (Conforme Imagem 2) */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSiteConfig({ ...siteConfig, heroDisplayMode: 'logo' })
+                      }
+                      className={`p-4 rounded-lg border text-left transition-all flex flex-col gap-2 relative group ${
+                        siteConfig.heroDisplayMode === 'logo'
+                          ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA] shadow-[0_0_20px_rgba(242,202,80,0.18)]'
+                          : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50 hover:text-[#F4F1EA]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="w-8 h-8 rounded bg-[#12151B] border border-[#282E3A] group-hover:border-[#f2ca50]/50 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base text-[#f2ca50]">diamond</span>
+                        </div>
+                        {siteConfig.heroDisplayMode === 'logo' ? (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase font-['Space_Grotesk'] bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                            Ativo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#9CA3AF] font-['Space_Grotesk']">Clique p/ Ativar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs block text-[#F4F1EA]">
+                          3. Logotipo em Tamanho Maior
+                        </span>
+                        <span className="text-[11px] leading-tight text-[#9CA3AF] block mt-1 font-['Manrope']">
+                          Brasão 3D dourado da Diamond Relics com @diamond.relics (conforme imagem 2).
+                        </span>
+                      </div>
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-1">
-                  {/* Pré-visualização do Logotipo Atual */}
-                  <div className="md:col-span-4 bg-[#08090B] border border-[#282E3A] rounded-lg p-4 flex flex-col items-center justify-center text-center space-y-3 relative overflow-hidden">
-                    <div className="absolute top-2 left-2 text-[9px] font-['Space_Grotesk'] text-[#9CA3AF] uppercase">
-                      Pré-visualização
-                    </div>
-                    <div className="w-full py-4 flex items-center justify-center min-h-[110px]">
-                      <img
-                        src={siteConfig.customLogoUrl || '/diamond-relics-logo.png'}
-                        alt="Logotipo da Empresa"
-                        className="max-h-20 w-auto object-contain drop-shadow-[0_0_20px_rgba(242,202,80,0.35)]"
-                      />
-                    </div>
-                    <div className="w-full pt-2 border-t border-[#282E3A]/80 flex items-center justify-between text-[10px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                      <span>Status do Logo:</span>
-                      {siteConfig.customLogoUrl && siteConfig.customLogoUrl !== '/diamond-relics-logo.png' ? (
-                        <span className="text-[#10B981] font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                          Personalizado Ativo
-                        </span>
-                      ) : (
-                        <span className="text-[#f2ca50] font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50]"></span>
-                          Logo Padrão Oficial
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                {/* PAINEL DINÂMICO CONFORME O MODO SELECIONADO */}
 
-                  {/* Upload e Controles do Logotipo */}
-                  <div className="md:col-span-8 space-y-3 text-xs font-['Space_Grotesk']">
-                    <div>
-                      <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
-                        <span>Fazer Upload de Imagem para o Logotipo:</span>
-                        <span className="text-[10px] text-[#9CA3AF] font-normal">
-                          PNG transparente, SVG, WebP ou JPG (até 5MB)
-                        </span>
-                      </label>
-                      <div className="flex flex-col sm:flex-row items-center gap-2">
-                        <label className="w-full sm:w-auto px-4 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-bold text-xs uppercase rounded cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-sm shrink-0">
-                          <span className="material-symbols-outlined text-base">upload_file</span>
-                          Selecionar Arquivo do Computador
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoUpload}
-                            disabled={!isUserAdmin}
-                            className="hidden"
+                {/* MODO 3: LOGOTIPO EM TAMANHO MAIOR (CONFORME IMAGEM 2) */}
+                {siteConfig.heroDisplayMode === 'logo' && (
+                  <div className="p-4 sm:p-5 bg-[#08090B] border border-[#f2ca50]/40 rounded-lg space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">image</span>
+                        Configuração do Logotipo / Imagem em Tamanho Maior
+                      </span>
+                      <span className="text-[10px] text-[#10B981] font-['Space_Grotesk'] font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                        Modo Logotipo Ativo na Home
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                      {/* Pré-visualização Fiel ao Exemplo da Segunda Imagem */}
+                      <div className="md:col-span-5 bg-[#050608] border border-[#282E3A] rounded-xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-2 left-3 text-[9px] font-['Space_Grotesk'] text-[#9CA3AF] uppercase">
+                          Pré-visualização da Home (Imagem 2)
+                        </div>
+                        {/* Glow Dourado Ambiente de Fundo */}
+                        <div className="absolute -inset-4 bg-[#f2ca50]/10 rounded-full blur-2xl pointer-events-none" />
+
+                        <div className="w-full py-4 flex items-center justify-center min-h-[170px] relative z-10">
+                          <img
+                            src={siteConfig.heroCustomImageUrl || '/diamond-relics-logo.png'}
+                            alt="Logotipo Oficial Diamond Relics"
+                            className="max-h-36 sm:max-h-44 w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)]"
                           />
-                        </label>
-                        <span className="text-[11px] text-[#9CA3AF]">ou informe o link direto:</span>
-                      </div>
-                    </div>
+                        </div>
 
-                    <div>
-                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                        Link Direto da Imagem (URL):
-                      </label>
-                      <input
-                        type="text"
-                        value={siteConfig.customLogoUrl || ''}
-                        onChange={(e) =>
-                          setSiteConfig({ ...siteConfig, customLogoUrl: e.target.value })
-                        }
-                        placeholder="Ex: https://meusite.com/logo.png ou /diamond-relics-logo.png"
-                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div>
-                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                          Nome da Marca / Loja:
-                        </label>
-                        <input
-                          type="text"
-                          value={siteConfig.storeName || ''}
-                          onChange={(e) =>
-                            setSiteConfig({ ...siteConfig, storeName: e.target.value })
-                          }
-                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                        />
+                        {/* Badge do Instagram conforme segunda imagem */}
+                        <div className="relative z-10 mt-2 flex items-center justify-center gap-2 px-3.5 py-1 rounded-full bg-[#12151B]/90 border border-[#282E3A]">
+                          <svg
+                            className="w-3.5 h-3.5 text-[#f2ca50] shrink-0"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                          </svg>
+                          <span className="text-[11px] font-['Space_Grotesk'] text-[#F4F1EA] font-medium">
+                            {siteConfig.heroCustomInstagramHandle || '@diamond.relics'}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                          Etiqueta / Badge da Loja:
-                        </label>
-                        <input
-                          type="text"
-                          value={siteConfig.storeBadge || ''}
-                          onChange={(e) =>
-                            setSiteConfig({ ...siteConfig, storeBadge: e.target.value })
-                          }
-                          placeholder="Ex: LOJA OFICIAL ou ARTIGOS ESPORTIVOS"
-                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                        />
+
+                      {/* Controles de Upload e Customização do Logotipo */}
+                      <div className="md:col-span-7 space-y-3.5 text-xs font-['Space_Grotesk']">
+                        <div>
+                          <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
+                            <span>Trocar / Enviar Imagem do Logotipo:</span>
+                            <span className="text-[10px] text-[#9CA3AF] font-normal">
+                              PNG transparente, SVG, WebP ou JPG (até 5MB)
+                            </span>
+                          </label>
+                          <div className="flex flex-col sm:flex-row items-center gap-2">
+                            <label className="w-full sm:w-auto px-4 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-bold text-xs uppercase rounded cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-sm shrink-0">
+                              <span className="material-symbols-outlined text-base">upload_file</span>
+                              Selecionar Arquivo do Computador
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleHeroCustomImageUpload}
+                                disabled={!isUserAdmin}
+                                className="hidden"
+                              />
+                            </label>
+                            <span className="text-[11px] text-[#9CA3AF]">ou cole o link da imagem</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Link Direto da Imagem (URL):
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.heroCustomImageUrl || ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, heroCustomImageUrl: e.target.value })
+                            }
+                            placeholder="Ex: https://meusite.com/logo.png ou deixe vazio para o padrão"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Identificador do Instagram exibido abaixo do logotipo:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.heroCustomInstagramHandle || '@diamond.relics'}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, heroCustomInstagramHandle: e.target.value })
+                            }
+                            placeholder="Ex: @diamond.relics"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+
+                        <div className="p-3 bg-[#12151B] border border-[#282E3A] rounded-lg text-[11px] text-[#9CA3AF] leading-relaxed">
+                          <span className="text-[#10B981] font-bold block mb-0.5">
+                            ✓ Identidade Visual Preservada
+                          </span>
+                          Esta opção altera exclusivamente o quadro de destaque da página inicial em tamanho maior. Os logotipos do cabeçalho (Navbar) e do rodapé permanecem protegidos e inalterados.
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* MODO 1: DESTAQUE DA GALERIA (COMO ERA ANTES) */}
+                {(!siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product') && (
+                  <div className="p-4 sm:p-5 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">photo_library</span>
+                        Configuração do Destaque da Galeria (Produto)
+                      </span>
+                      <span className="text-[10px] text-[#10B981] font-['Space_Grotesk'] font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                        Modo Galeria Ativo na Home
+                      </span>
+                    </div>
+
+                    <div className="space-y-3.5 text-xs font-['Space_Grotesk']">
+                      <div>
+                        <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
+                          <span>Selecionar Produto para o Destaque Principal:</span>
+                          <span className="text-[10px] text-[#9CA3AF] font-normal">
+                            {products.length} relíquias cadastradas
+                          </span>
+                        </label>
+                        <select
+                          value={siteConfig.heroSelectedProductId || ''}
+                          onChange={(e) =>
+                            setSiteConfig({
+                              ...siteConfig,
+                              heroSelectedProductId: e.target.value,
+                            })
+                          }
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2.5 text-[#F4F1EA] text-xs font-['Space_Grotesk'] focus:outline-none focus:border-[#f2ca50]"
+                        >
+                          <option value="">
+                            ★ Automático (Alternar entre os produtos marcados como Destaque na Galeria)
+                          </option>
+                          {products.map((prod) => (
+                            <option key={prod.id} value={prod.id}>
+                              {prod.title} — {prod.athlete} (R$ {(Number(prod.priceBRL) || 0).toLocaleString('pt-BR')},00)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Miniatura do produto selecionado */}
+                      {siteConfig.heroSelectedProductId && (
+                        (() => {
+                          const sel = products.find((p) => p.id === siteConfig.heroSelectedProductId);
+                          if (!sel) return null;
+                          return (
+                            <div className="p-3 bg-[#12151B] border border-[#f2ca50]/30 rounded-lg flex items-center gap-3">
+                              <img
+                                src={sel.imageUrl}
+                                alt={sel.title}
+                                className="w-14 h-14 object-contain rounded bg-[#08090B] border border-[#282E3A] shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[10px] text-[#f2ca50] uppercase font-bold block">
+                                  Item Fixo Selecionado para o Destaque
+                                </span>
+                                <h4 className="text-xs font-bold text-[#F4F1EA] truncate">
+                                  {sel.title}
+                                </h4>
+                                <span className="text-[11px] text-[#9CA3AF]">
+                                  {sel.athlete} • R$ {(Number(sel.priceBRL) || 0).toLocaleString('pt-BR')},00 • {sel.status === 'sold' ? 'Vendido' : 'Disponível'}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSiteConfig({ ...siteConfig, heroSelectedProductId: '' })}
+                                className="text-[10px] text-red-400 hover:text-red-300 px-2.5 py-1 bg-red-950/40 border border-red-800/40 rounded shrink-0 transition-colors"
+                                title="Voltar para rotação automática de destaques"
+                              >
+                                Limpar Seleção Fixa
+                              </button>
+                            </div>
+                          );
+                        })()
+                      )}
+
+                      {/* Controle de Carrossel Automático de Fotos da Galeria */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="p-3 bg-[#12151B] border border-[#282E3A] rounded flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold text-[#F4F1EA] block">
+                              Carrossel Automático de Fotos
+                            </span>
+                            <span className="text-[10px] text-[#9CA3AF]">
+                              Troca as fotos da galeria automaticamente no card
+                            </span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={siteConfig.featuredAutoPlay !== false}
+                              onChange={(e) =>
+                                setSiteConfig({ ...siteConfig, featuredAutoPlay: e.target.checked })
+                              }
+                              className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#10B981]"></div>
+                          </label>
+                        </div>
+
+                        <div className="p-3 bg-[#12151B] border border-[#282E3A] rounded flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold text-[#F4F1EA] block">
+                              Tempo de Troca de Foto
+                            </span>
+                            <span className="text-[10px] text-[#9CA3AF]">
+                              Segundos para cada imagem
+                            </span>
+                          </div>
+                          <input
+                            type="number"
+                            min={2}
+                            max={20}
+                            value={siteConfig.featuredIntervalSeconds || 4}
+                            onChange={(e) =>
+                              setSiteConfig({
+                                ...siteConfig,
+                                featuredIntervalSeconds: Math.max(2, parseInt(e.target.value) || 4),
+                              })
+                            }
+                            className="w-16 bg-[#08090B] border border-[#282E3A] rounded px-2 py-1 text-[#F4F1EA] text-center text-xs focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-[#9CA3AF] leading-relaxed">
+                        💡 <strong>Dica da Galeria:</strong> Você pode adicionar fotos, ordenar arrastando e escolher a foto de capa diretamente na aba <strong>&ldquo;Catálogo de Produtos&rdquo;</strong> clicando em <strong>&ldquo;Editar Galeria&rdquo;</strong> em qualquer item!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* MODO 2: PRODUTOS DA VITRINE */}
+                {siteConfig.heroDisplayMode === 'vitrine' && (
+                  <div className="p-4 sm:p-5 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">storefront</span>
+                        Configuração dos Produtos da Vitrine
+                      </span>
+                      <span className="text-[10px] text-[#10B981] font-['Space_Grotesk'] font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                        Modo Vitrine Ativo na Home
+                      </span>
+                    </div>
+
+                    <div className="space-y-3.5 text-xs font-['Space_Grotesk']">
+                      <div>
+                        <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
+                          <span>Selecionar Item da Vitrine para Exibir:</span>
+                          <span className="text-[10px] text-[#9CA3AF] font-normal">
+                            {products.length} produtos na vitrine
+                          </span>
+                        </label>
+                        <select
+                          value={siteConfig.heroSelectedProductId || ''}
+                          onChange={(e) =>
+                            setSiteConfig({
+                              ...siteConfig,
+                              heroSelectedProductId: e.target.value,
+                            })
+                          }
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2.5 text-[#F4F1EA] text-xs font-['Space_Grotesk'] focus:outline-none focus:border-[#f2ca50]"
+                        >
+                          <option value="">
+                            ★ Vitrine Completa (Alternar entre todos os itens cadastrados na Vitrine da Home)
+                          </option>
+                          {products.map((prod) => (
+                            <option key={prod.id} value={prod.id}>
+                              {prod.title} — {prod.athlete} (R$ {(Number(prod.priceBRL) || 0).toLocaleString('pt-BR')},00)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {siteConfig.heroSelectedProductId && (
+                        (() => {
+                          const sel = products.find((p) => p.id === siteConfig.heroSelectedProductId);
+                          if (!sel) return null;
+                          return (
+                            <div className="p-3 bg-[#12151B] border border-[#f2ca50]/30 rounded-lg flex items-center gap-3">
+                              <img
+                                src={sel.imageUrl}
+                                alt={sel.title}
+                                className="w-14 h-14 object-contain rounded bg-[#08090B] border border-[#282E3A] shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[10px] text-[#f2ca50] uppercase font-bold block">
+                                  Peça da Vitrine Selecionada
+                                </span>
+                                <h4 className="text-xs font-bold text-[#F4F1EA] truncate">
+                                  {sel.title}
+                                </h4>
+                                <span className="text-[11px] text-[#9CA3AF]">
+                                  {sel.athlete} • R$ {(Number(sel.priceBRL) || 0).toLocaleString('pt-BR')},00 • {sel.status === 'sold' ? 'Vendido' : 'Disponível'}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSiteConfig({ ...siteConfig, heroSelectedProductId: '' })}
+                                className="text-[10px] text-red-400 hover:text-red-300 px-2.5 py-1 bg-red-950/40 border border-red-800/40 rounded shrink-0 transition-colors"
+                              >
+                                Limpar
+                              </button>
+                            </div>
+                          );
+                        })()
+                      )}
+
+                      <p className="text-[11px] text-[#9CA3AF] leading-relaxed">
+                        Exibe os produtos da vitrine da loja no card do Hero. Os clientes podem navegar entre os itens da vitrine com os botões de avançar e voltar.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* PAINEL 1: FAIXA SUPERIOR DE AVISOS (RELAYBAR) */}
@@ -1289,351 +1653,17 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {/* SUBSEÇÃO: CONTROLE DO CARD EM DESTAQUE (O card da imagem enviada pelo cliente) */}
-                    <div className="pt-4 border-t border-[#282E3A] space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[#f2ca50] text-base">star</span>
-                          <div>
-                            <span className="font-bold text-[#F4F1EA] block text-xs uppercase tracking-wider">
-                              Configuração do Card em Destaque (Lado Direito do Hero)
-                            </span>
-                            <span className="text-[11px] text-[#9CA3AF]">
-                              Escolha o que deve ser exibido no card principal ao lado do texto da Home:
-                            </span>
-                          </div>
-                        </div>
+                    {/* Indicador do Modo de Destaque configurado no topo */}
+                    <div className="pt-3 border-t border-[#282E3A] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#f2ca50] text-base">auto_awesome</span>
+                        <span>
+                          O tipo de card exibido (Galeria, Vitrine ou Logotipo Maior) é gerenciado no <strong>Painel de Destaque da Home</strong> no topo.
+                        </span>
                       </div>
-
-                      {/* Seletor de Modo: 3 Abas Visuais */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSiteConfig({ ...siteConfig, heroDisplayMode: 'product' })
-                          }
-                          className={`p-3 rounded-lg border text-left transition-all flex flex-col gap-1.5 ${
-                            !siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product'
-                              ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA]'
-                              : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="material-symbols-outlined text-base text-[#f2ca50]">inventory_2</span>
-                            {(!siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product') && (
-                              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                            )}
-                          </div>
-                          <span className="font-bold text-xs">Produto do Catálogo</span>
-                          <span className="text-[10px] leading-tight opacity-80">
-                            Exibir uma relíquia (com carrossel de fotos, preço e botão Comprar)
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSiteConfig({ ...siteConfig, heroDisplayMode: 'logo' })
-                          }
-                          className={`p-3 rounded-lg border text-left transition-all flex flex-col gap-1.5 ${
-                            siteConfig.heroDisplayMode === 'logo'
-                              ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA]'
-                              : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="material-symbols-outlined text-base text-[#f2ca50]">verified_user</span>
-                            {siteConfig.heroDisplayMode === 'logo' && (
-                              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                            )}
-                          </div>
-                          <span className="font-bold text-xs">Logotipo da Empresa</span>
-                          <span className="text-[10px] leading-tight opacity-80">
-                            Exibir o brasão oficial da Diamond Relics com selos de garantia
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSiteConfig({ ...siteConfig, heroDisplayMode: 'custom_image' })
-                          }
-                          className={`p-3 rounded-lg border text-left transition-all flex flex-col gap-1.5 ${
-                            siteConfig.heroDisplayMode === 'custom_image'
-                              ? 'bg-[#f2ca50]/15 border-[#f2ca50] text-[#F4F1EA]'
-                              : 'bg-[#08090B] border-[#282E3A] text-[#9CA3AF] hover:border-[#f2ca50]/50'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="material-symbols-outlined text-base text-[#f2ca50]">add_photo_alternate</span>
-                            {siteConfig.heroDisplayMode === 'custom_image' && (
-                              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                            )}
-                          </div>
-                          <span className="font-bold text-xs">Imagem / Banner Customizado</span>
-                          <span className="text-[10px] leading-tight opacity-80">
-                            Subir qualquer foto que desejar com título e botão próprio
-                          </span>
-                        </button>
-                      </div>
-
-                      {/* Conteúdo específico para o modo PRODUTO DO CATÁLOGO */}
-                      {(!siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product') && (
-                        <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3 animate-fadeIn">
-                          <div>
-                            <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
-                              <span>Selecionar Produto Específico para o Destaque Principal:</span>
-                              <span className="text-[10px] text-[#10B981] font-normal">
-                                {products.length} itens cadastrados
-                              </span>
-                            </label>
-                            <select
-                              value={siteConfig.heroSelectedProductId || ''}
-                              onChange={(e) =>
-                                setSiteConfig({
-                                  ...siteConfig,
-                                  heroSelectedProductId: e.target.value,
-                                })
-                              }
-                              className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] text-xs font-['Space_Grotesk'] focus:outline-none focus:border-[#f2ca50]"
-                            >
-                              <option value="">
-                                ★ Automático (Alternar entre os produtos marcados como Destaque)
-                              </option>
-                              {products.map((prod) => (
-                                <option key={prod.id} value={prod.id}>
-                                  {prod.title} — {prod.athlete} (R$ {(Number(prod.priceBRL) || 0).toLocaleString('pt-BR')},00)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Miniatura do produto selecionado */}
-                          {siteConfig.heroSelectedProductId && (
-                            (() => {
-                              const sel = products.find((p) => p.id === siteConfig.heroSelectedProductId);
-                              if (!sel) return null;
-                              return (
-                                <div className="p-3 bg-[#12151B] border border-[#f2ca50]/30 rounded flex items-center gap-3">
-                                  <img
-                                    src={sel.imageUrl}
-                                    alt={sel.title}
-                                    className="w-14 h-14 object-contain rounded bg-[#08090B] border border-[#282E3A] shrink-0"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <span className="text-[10px] text-[#f2ca50] uppercase font-bold block">
-                                      Item Fixo Selecionado
-                                    </span>
-                                    <h4 className="text-xs font-bold text-[#F4F1EA] truncate">
-                                      {sel.title}
-                                    </h4>
-                                    <span className="text-[11px] text-[#9CA3AF]">
-                                      {sel.athlete} • R$ {(Number(sel.priceBRL) || 0).toLocaleString('pt-BR')},00 • {sel.status === 'sold' ? 'Vendido' : 'Disponível'}
-                                    </span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSiteConfig({ ...siteConfig, heroSelectedProductId: '' })}
-                                    className="text-[10px] text-red-400 hover:text-red-300 px-2.5 py-1 bg-red-950/40 border border-red-800/40 rounded shrink-0 transition-colors"
-                                    title="Voltar para rotação automática"
-                                  >
-                                    Limpar Seleção Fixa
-                                  </button>
-                                </div>
-                              );
-                            })()
-                          )}
-
-                          <p className="text-[11px] text-[#9CA3AF] leading-relaxed">
-                            💡 <strong>Dica:</strong> Se o produto escolhido possuir várias fotos cadastradas na galeria, os botões de avançar/voltar e o carrossel automático continuarão disponíveis no card para os clientes visualizarem todas as fotos!
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Conteúdo específico para o modo LOGOTIPO DA EMPRESA */}
-                      {siteConfig.heroDisplayMode === 'logo' && (
-                        <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3 animate-fadeIn">
-                          <div className="flex items-center gap-3 p-3 bg-[#12151B] border border-[#282E3A] rounded">
-                            <img
-                              src={siteConfig.customLogoUrl || '/diamond-relics-logo.png'}
-                              alt="Logo"
-                              className="h-12 w-auto object-contain drop-shadow-[0_0_12px_rgba(242,202,80,0.3)] shrink-0"
-                            />
-                            <div>
-                              <span className="text-xs font-bold text-[#F4F1EA] block">
-                                O Card exibirá o Logotipo Oficial da Diamond Relics
-                              </span>
-                              <span className="text-[11px] text-[#9CA3AF]">
-                                Com moldura em ouro, selo de autenticidade registrado e garantias exclusivas.
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Frase de Destaque no Card:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomSubtitle || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomSubtitle: e.target.value })
-                                }
-                                placeholder="Memorabilia Esportiva com Certificação Forense..."
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Texto do Botão de Ação:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomBtnText || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomBtnText: e.target.value })
-                                }
-                                placeholder="Explorar Todo o Acervo"
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Conteúdo específico para o modo BANNER / IMAGEM CUSTOMIZADA */}
-                      {siteConfig.heroDisplayMode === 'custom_image' && (
-                        <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3 animate-fadeIn">
-                          <div>
-                            <label className="text-[#F4F1EA] block mb-1.5 font-bold flex items-center justify-between">
-                              <span>Subir Imagem Personalizada para o Card:</span>
-                              <span className="text-[10px] text-[#9CA3AF] font-normal">
-                                PNG, JPG, WebP (até 5MB)
-                              </span>
-                            </label>
-                            <div className="flex flex-col sm:flex-row items-center gap-2">
-                              <label className="w-full sm:w-auto px-4 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-bold text-xs uppercase rounded cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-sm shrink-0">
-                                <span className="material-symbols-outlined text-base">upload_file</span>
-                                Escolher Imagem do Computador
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleHeroCustomImageUpload}
-                                  disabled={!isUserAdmin}
-                                  className="hidden"
-                                />
-                              </label>
-                              <span className="text-[11px] text-[#9CA3AF]">ou cole o link da imagem</span>
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                              Link da Imagem (URL):
-                            </label>
-                            <input
-                              type="text"
-                              value={siteConfig.heroCustomImageUrl || ''}
-                              onChange={(e) =>
-                                setSiteConfig({ ...siteConfig, heroCustomImageUrl: e.target.value })
-                              }
-                              placeholder="Ex: https://..."
-                              className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                            />
-                          </div>
-
-                          {siteConfig.heroCustomImageUrl && (
-                            <div className="p-2.5 bg-[#12151B] border border-[#282E3A] rounded flex items-center gap-3">
-                              <img
-                                src={siteConfig.heroCustomImageUrl}
-                                alt="Preview"
-                                className="w-16 h-16 object-contain rounded bg-[#08090B] border border-[#282E3A]"
-                              />
-                              <span className="text-[11px] text-[#10B981] font-bold">
-                                Imagem Carregada e Pronta!
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Etiqueta Superior (Badge):
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomTag || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomTag: e.target.value })
-                                }
-                                placeholder="Ex: PEÇA ÚNICA • DISPONÍVEL"
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Título do Card:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomTitle || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomTitle: e.target.value })
-                                }
-                                placeholder="Ex: Camisa Autografada Especial"
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Subtítulo / Descrição:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomSubtitle || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomSubtitle: e.target.value })
-                                }
-                                placeholder="Descrição do item ou promoção..."
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Texto do Botão:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomBtnText || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomBtnText: e.target.value })
-                                }
-                                placeholder="Ex: Comprar Agora ou Ver Detalhes"
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-
-                            <div className="sm:col-span-2">
-                              <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                                Link de Destino do Botão:
-                              </label>
-                              <input
-                                type="text"
-                                value={siteConfig.heroCustomBtnLink || ''}
-                                onChange={(e) =>
-                                  setSiteConfig({ ...siteConfig, heroCustomBtnLink: e.target.value })
-                                }
-                                placeholder="Ex: /catalog ou /product?id=... ou https://..."
-                                className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      <span className="text-[10px] text-[#f2ca50] uppercase font-bold">
+                        Modo Ativo: {siteConfig.heroDisplayMode === 'logo' ? 'Logotipo Maior' : siteConfig.heroDisplayMode === 'vitrine' ? 'Produtos da Vitrine' : 'Destaque da Galeria'}
+                      </span>
                     </div>
                   </div>
                 )}

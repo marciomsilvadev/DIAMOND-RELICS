@@ -21,7 +21,7 @@ export function Footer() {
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src={config.customLogoUrl || '/diamond-relics-logo.png'}
+                src="/diamond-relics-logo.png"
                 alt={config.storeName || 'Diamond Relics'}
                 className="h-14 w-auto object-contain drop-shadow-[0_0_15px_rgba(242,202,80,0.3)] shrink-0"
               />
