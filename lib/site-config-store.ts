@@ -95,7 +95,10 @@ export interface SiteConfig {
   productCertificateSubtitle?: string;
   productCertificateBtnText?: string;
   productFreightTitle?: string;
+  productFreightBtnText?: string;
+  productFreightPlaceholder?: string;
   productFreightResultText?: string;
+  productFreightInvalidText?: string;
   productTrustBadge1Title?: string;
   productTrustBadge1Subtitle?: string;
   productTrustBadge2Title?: string;
@@ -104,6 +107,8 @@ export interface SiteConfig {
   productConciergeSubtitle?: string;
   productConciergeBtnText?: string;
   productConciergePhone?: string;
+  productConciergePhoneLabel?: string;
+  showProductConciergePhoneLine?: boolean;
   productConciergeWhatsappMessage?: string;
 
   // Rótulos de Botões Globais
@@ -178,6 +183,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   showProductFreightSimulator: true,
   showProductTrustBadges: true,
   showProductConcierge: true,
+  showProductConciergePhoneLine: true,
 
   // Textos do Painel de Consulta COA
   coaBadge: 'CONSULTA DE AUTENTICIDADE',
@@ -241,8 +247,11 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     'Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.',
   productCertificateBtnText: 'Baixar Laudo Oficial (PDF)',
   productFreightTitle: 'Simulador de Frete e Entrega Segura',
+  productFreightBtnText: 'Calcular',
+  productFreightPlaceholder: 'Digite seu CEP (ex: 01310-100)',
   productFreightResultText:
     'Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd\'s)',
+  productFreightInvalidText: 'Por favor, digite um CEP válido com 8 dígitos.',
   productTrustBadge1Title: 'Seguro Total',
   productTrustBadge1Subtitle: 'Apólice Lloyd\'s',
   productTrustBadge2Title: 'Garantia Vitalícia',
@@ -252,6 +261,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     'Dúvidas sobre o produto ou agendamento de inspeção presencial.',
   productConciergeBtnText: 'Falar Agora',
   productConciergePhone: '+55 (11) 99842-1970',
+  productConciergePhoneLabel: 'WhatsApp:',
   productConciergeWhatsappMessage:
     'Olá! Gostaria de atendimento VIP sobre uma peça no acervo da Diamond Relics.',
 

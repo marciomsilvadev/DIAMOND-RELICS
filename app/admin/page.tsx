@@ -2205,24 +2205,72 @@ export default function AdminPage() {
                   </div>
 
                   {siteConfig.showProductFreightSimulator !== false && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
-                      <div>
-                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                          Título do Simulador de Frete:
-                        </label>
-                        <input
-                          type="text"
-                          value={siteConfig.productFreightTitle ?? ''}
-                          onChange={(e) =>
-                            setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
-                          }
-                          placeholder="Ex: Simulador de Frete e Entrega Segura"
-                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                        />
+                    <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="sm:col-span-2">
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Título do Simulador de Frete:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productFreightTitle ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
+                            }
+                            placeholder="Ex: SIMULADOR DE FRETE E ENTREGA SEGURA"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Texto do Botão:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productFreightBtnText ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productFreightBtnText: e.target.value })
+                            }
+                            placeholder="Ex: Calcular"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Texto de Dica / Placeholder do Campo de CEP:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productFreightPlaceholder ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productFreightPlaceholder: e.target.value })
+                            }
+                            placeholder="Ex: Digite seu CEP (ex: 01310-100)"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Mensagem de Erro (CEP Inválido):
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productFreightInvalidText ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productFreightInvalidText: e.target.value })
+                            }
+                            placeholder="Ex: Por favor, digite um CEP válido com 8 dígitos."
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                      </div>
+
                       <div>
                         <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                          Texto do Resultado do Cálculo de Frete:
+                          Texto do Resultado do Frete (Após o Cálculo):
                         </label>
                         <input
                           type="text"
@@ -2410,6 +2458,39 @@ export default function AdminPage() {
                               Texto pré-preenchido que aparecerá na tela do WhatsApp do cliente.
                             </p>
                           </div>
+
+                          <div>
+                            <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                              Rótulo do WhatsApp no Card:
+                            </label>
+                            <input
+                              type="text"
+                              value={siteConfig.productConciergePhoneLabel ?? ''}
+                              onChange={(e) =>
+                                setSiteConfig({ ...siteConfig, productConciergePhoneLabel: e.target.value })
+                              }
+                              placeholder="Ex: WhatsApp:"
+                              className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between p-3 bg-[#08090B] rounded border border-[#282E3A]">
+                            <div>
+                              <span className="text-[#F4F1EA] font-semibold block text-xs">Exibir Linha do WhatsApp no Card</span>
+                              <span className="text-[10px] text-[#9CA3AF]">Mostra o número/WhatsApp logo abaixo da descrição</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={siteConfig.showProductConciergePhoneLine !== false}
+                                onChange={(e) =>
+                                  setSiteConfig({ ...siteConfig, showProductConciergePhoneLine: e.target.checked })
+                                }
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                            </label>
+                          </div>
                         </div>
                       </div>
 
@@ -2481,6 +2562,7 @@ export default function AdminPage() {
                           <input
                             type="text"
                             readOnly
+                            placeholder={siteConfig.productFreightPlaceholder || 'Digite seu CEP (ex: 01310-100)'}
                             value="94824180"
                             className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 cursor-default"
                           />
@@ -2488,7 +2570,7 @@ export default function AdminPage() {
                             type="button"
                             className="px-4 py-2 bg-[#1A1E26] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded"
                           >
-                            Calcular
+                            {siteConfig.productFreightBtnText || 'Calcular'}
                           </button>
                         </div>
                         <p className="text-xs font-['Space_Grotesk'] text-[#10B981] bg-[#10B981]/10 p-2.5 rounded border border-[#10B981]/20">
@@ -2548,10 +2630,13 @@ export default function AdminPage() {
                               {siteConfig.productConciergeSubtitle ||
                                 'Dúvidas sobre o produto ou agendamento de inspeção presencial.'}
                             </p>
-                            <span className="text-[10px] text-[#25D366] flex items-center gap-1 mt-0.5">
-                              <span className="material-symbols-outlined text-xs">phone</span>
-                              WhatsApp: {siteConfig.productConciergePhone || siteConfig.contactPhone || '+55 (11) 99842-1970'}
-                            </span>
+                            {siteConfig.showProductConciergePhoneLine !== false && (
+                              <span className="text-[10px] text-[#25D366] flex items-center gap-1 mt-0.5 font-['Space_Grotesk']">
+                                <span className="material-symbols-outlined text-xs">phone</span>
+                                {siteConfig.productConciergePhoneLabel || 'WhatsApp:'}{' '}
+                                {siteConfig.productConciergePhone || siteConfig.contactPhone || '+55 (11) 99842-1970'}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="px-3.5 py-2 bg-[#08090B] border border-[#C59B27] text-xs font-['Space_Grotesk'] font-bold text-[#f2ca50] rounded shrink-0 flex items-center gap-1.5 shadow-sm">
@@ -3161,21 +3246,69 @@ export default function AdminPage() {
               </div>
 
               {siteConfig.showProductFreightSimulator !== false && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk']">
-                  <div>
-                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
-                      Título do Simulador de Frete:
-                    </label>
-                    <input
-                      type="text"
-                      value={siteConfig.productFreightTitle ?? ''}
-                      onChange={(e) =>
-                        setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
-                      }
-                      placeholder="Ex: Simulador de Frete e Entrega Segura"
-                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
-                    />
+                <div className="space-y-4 text-xs font-['Space_Grotesk']">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Título do Simulador de Frete:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productFreightTitle ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
+                        }
+                        placeholder="Ex: SIMULADOR DE FRETE E ENTREGA SEGURA"
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Texto do Botão:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productFreightBtnText ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productFreightBtnText: e.target.value })
+                        }
+                        placeholder="Ex: Calcular"
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Texto de Dica / Placeholder do Campo de CEP:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productFreightPlaceholder ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productFreightPlaceholder: e.target.value })
+                        }
+                        placeholder="Ex: Digite seu CEP (ex: 01310-100)"
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Mensagem de Erro (CEP Inválido):
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productFreightInvalidText ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productFreightInvalidText: e.target.value })
+                        }
+                        placeholder="Ex: Por favor, digite um CEP válido com 8 dígitos."
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-[#9CA3AF] block mb-1 font-semibold">
                       Texto do Resultado do Cálculo de Frete:
@@ -3327,7 +3460,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2 text-[#25D366]">
                       <span className="material-symbols-outlined text-lg">chat</span>
                       <span className="font-bold uppercase tracking-wider text-xs">
-                        Número do WhatsApp para Atendimento Direto:
+                        Configuração do WhatsApp para Atendimento:
                       </span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3365,6 +3498,39 @@ export default function AdminPage() {
                         <p className="text-[10px] text-[#9CA3AF] mt-1 font-['Manrope']">
                           Texto que aparecerá pronto para o cliente enviar.
                         </p>
+                      </div>
+
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Rótulo do WhatsApp no Card:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productConciergePhoneLabel ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productConciergePhoneLabel: e.target.value })
+                          }
+                          placeholder="Ex: WhatsApp:"
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-[#12151B] rounded border border-[#282E3A]">
+                        <div>
+                          <span className="text-[#F4F1EA] font-semibold block text-xs">Exibir Linha do WhatsApp no Card</span>
+                          <span className="text-[10px] text-[#9CA3AF]">Mostra o número logo abaixo da descrição</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={siteConfig.showProductConciergePhoneLine !== false}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, showProductConciergePhoneLine: e.target.checked })
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                        </label>
                       </div>
                     </div>
                   </div>

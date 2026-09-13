@@ -362,7 +362,9 @@ function ProductContent() {
           "Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd's)"
       );
     } else {
-      setFreightResult('Por favor, digite um CEP válido com 8 dígitos.');
+      setFreightResult(
+        config.productFreightInvalidText || 'Por favor, digite um CEP válido com 8 dígitos.'
+      );
     }
   };
 
@@ -996,14 +998,14 @@ function ProductContent() {
                       maxLength={9}
                       value={cep}
                       onChange={(e) => setCep(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Digite seu CEP (ex: 01310-100)"
+                      placeholder={config.productFreightPlaceholder || 'Digite seu CEP (ex: 01310-100)'}
                       className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 focus:outline-none focus:border-[#f2ca50]"
                     />
                     <button
                       type="submit"
                       className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded transition-colors"
                     >
-                      Calcular
+                      {config.productFreightBtnText || 'Calcular'}
                     </button>
                   </form>
                   {freightResult && (
@@ -1055,6 +1057,13 @@ function ProductContent() {
                       <p className="text-[11px] text-[#9CA3AF]">
                         {config.productConciergeSubtitle || 'Dúvidas sobre o produto ou agendamento de inspeção presencial.'}
                       </p>
+                      {config.showProductConciergePhoneLine !== false && (
+                        <span className="text-[10px] text-[#25D366] flex items-center gap-1 mt-0.5 font-['Space_Grotesk']">
+                          <span className="material-symbols-outlined text-xs">phone</span>
+                          {config.productConciergePhoneLabel || 'WhatsApp:'}{' '}
+                          {config.productConciergePhone || config.contactPhone || '+55 (11) 99842-1970'}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <a
