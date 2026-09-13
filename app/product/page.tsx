@@ -357,11 +357,24 @@ function ProductContent() {
   const handleCalcFreight = (e: React.FormEvent) => {
     e.preventDefault();
     if (cep.length >= 8) {
-      setFreightResult('Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd\'s)');
+      setFreightResult(
+        config.productFreightResultText ||
+          "Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd's)"
+      );
     } else {
       setFreightResult('Por favor, digite um CEP válido com 8 dígitos.');
     }
   };
+
+  const rawConciergePhone = (config.productConciergePhone || config.contactPhone || '5511998421970').replace(/\D/g, '');
+  const whatsappPhone =
+    rawConciergePhone.length <= 11 && !rawConciergePhone.startsWith('55')
+      ? `55${rawConciergePhone}`
+      : rawConciergePhone;
+  const conciergeWhatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+    config.productConciergeWhatsappMessage ||
+      `Olá! Gostaria de atendimento VIP sobre a peça "${product?.title || 'Item do Acervo'}" na Diamond Relics.`
+  )}`;
 
   const openImage = (
     imageUrl: string,
@@ -971,86 +984,89 @@ function ProductContent() {
               </div>
 
               {/* Freight Simulator */}
-              <div className="pt-4 border-t border-[#282E3A] space-y-2.5">
-                <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm text-[#10B981]">local_shipping</span>
-                  Simulador de Frete e Entrega Segura
-                </span>
-                <form onSubmit={handleCalcFreight} className="flex gap-2">
-                  <input
-                    type="text"
-                    maxLength={9}
-                    value={cep}
-                    onChange={(e) => setCep(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Digite seu CEP (ex: 01310-100)"
-                    className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 focus:outline-none focus:border-[#f2ca50]"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded transition-colors"
-                  >
-                    Calcular
-                  </button>
-                </form>
-                {freightResult && (
-                  <p className="text-xs font-['Space_Grotesk'] text-[#10B981] bg-[#10B981]/10 p-2.5 rounded border border-[#10B981]/20">
-                    {freightResult}
-                  </p>
-                )}
-              </div>
+              {config.showProductFreightSimulator !== false && (
+                <div className="pt-4 border-t border-[#282E3A] space-y-2.5">
+                  <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-[#10B981]">local_shipping</span>
+                    {config.productFreightTitle || 'Simulador de Frete e Entrega Segura'}
+                  </span>
+                  <form onSubmit={handleCalcFreight} className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={9}
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Digite seu CEP (ex: 01310-100)"
+                      className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 focus:outline-none focus:border-[#f2ca50]"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded transition-colors"
+                    >
+                      Calcular
+                    </button>
+                  </form>
+                  {freightResult && (
+                    <p className="text-xs font-['Space_Grotesk'] text-[#10B981] bg-[#10B981]/10 p-2.5 rounded border border-[#10B981]/20">
+                      {freightResult}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-2 gap-3 pt-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
-                <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
-                  <div>
-                    <strong className="text-[#F4F1EA] block text-[11px]">Seguro Total</strong>
-                    <span className="text-[10px]">Apólice Lloyd&apos;s</span>
+              {config.showProductTrustBadges !== false && (
+                <div className="grid grid-cols-2 gap-3 pt-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                  <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
+                    <div>
+                      <strong className="text-[#F4F1EA] block text-[11px]">
+                        {config.productTrustBadge1Title || 'Seguro Total'}
+                      </strong>
+                      <span className="text-[10px]">
+                        {config.productTrustBadge1Subtitle || "Apólice Lloyd's"}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#10B981] text-lg">policy</span>
-                  <div>
-                    <strong className="text-[#F4F1EA] block text-[11px]">Garantia Vitalícia</strong>
-                    <span className="text-[10px]">Autenticidade Forense</span>
+                  <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#10B981] text-lg">policy</span>
+                    <div>
+                      <strong className="text-[#F4F1EA] block text-[11px]">
+                        {config.productTrustBadge2Title || 'Garantia Vitalícia'}
+                      </strong>
+                      <span className="text-[10px]">
+                        {config.productTrustBadge2Subtitle || 'Autenticidade Forense'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Concierge VIP */}
-              <div className="p-4 bg-gradient-to-r from-[#1A1E26] to-[#12151B] border border-[#C59B27]/40 rounded-lg flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[#f2ca50]">support_agent</span>
-                  <div>
-                    <h5 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk']">
-                      Atendimento VIP &amp; Concierge
-                    </h5>
-                    <p className="text-[11px] text-[#9CA3AF]">
-                      Dúvidas sobre o produto ou agendamento de inspeção presencial.
-                    </p>
+              {config.showProductConcierge !== false && (
+                <div className="p-4 bg-gradient-to-r from-[#1A1E26] to-[#12151B] border border-[#C59B27]/40 rounded-lg flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="material-symbols-outlined text-[#f2ca50]">support_agent</span>
+                    <div>
+                      <h5 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk']">
+                        {config.productConciergeTitle || 'Atendimento VIP & Concierge'}
+                      </h5>
+                      <p className="text-[11px] text-[#9CA3AF]">
+                        {config.productConciergeSubtitle || 'Dúvidas sobre o produto ou agendamento de inspeção presencial.'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => setShowConcierge(!showConcierge)}
-                  className="px-3 py-1.5 bg-[#08090B] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#f2ca50] rounded transition-colors shrink-0"
-                >
-                  Falar Agora
-                </button>
-              </div>
-
-              {showConcierge && (
-                <div className="p-4 bg-[#08090B] border border-[#C59B27] rounded-lg text-xs font-['Space_Grotesk'] space-y-2 animate-fadeIn">
-                  <p className="text-[#F4F1EA] font-bold">Canal Direto da Diretoria da Loja:</p>
-                  <p className="text-[#9CA3AF]">
-                    Telefone / WhatsApp VIP: <strong>{config.contactPhone}</strong>
-                  </p>
-                  <p className="text-[#9CA3AF]">
-                    E-mail Institucional: <strong>{config.contactEmail}</strong>
-                  </p>
-                  <p className="text-[10px] text-[#E5C875]">
-                    Atendimento reservado para clientes privados e colecionadores institucionais.
-                  </p>
+                  <a
+                    href={conciergeWhatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-[#08090B] hover:bg-[#282E3A] border border-[#C59B27] hover:border-[#f2ca50] text-xs font-['Space_Grotesk'] font-bold text-[#f2ca50] rounded transition-all shrink-0 flex items-center gap-1.5 shadow-sm hover:shadow-[0_0_12px_rgba(242,202,80,0.25)]"
+                    title={`Abrir conversa no WhatsApp com ${config.productConciergePhone || config.contactPhone || 'o Concierge'}`}
+                  >
+                    <span>{config.productConciergeBtnText || 'Falar Agora'}</span>
+                    <span className="material-symbols-outlined text-sm text-[#25D366]">chat</span>
+                  </a>
                 </div>
               )}
             </div>

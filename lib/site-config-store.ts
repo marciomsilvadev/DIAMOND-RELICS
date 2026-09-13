@@ -33,6 +33,9 @@ export interface SiteConfig {
   showCoaSection: boolean;
   showBenefitsSection: boolean;
   showProductCertificateBanner?: boolean;
+  showProductFreightSimulator?: boolean;
+  showProductTrustBadges?: boolean;
+  showProductConcierge?: boolean;
 
   // ==========================================
   // Textos do Painel de Consulta de Certificado (COA)
@@ -91,6 +94,17 @@ export interface SiteConfig {
   productCertificateTitle?: string;
   productCertificateSubtitle?: string;
   productCertificateBtnText?: string;
+  productFreightTitle?: string;
+  productFreightResultText?: string;
+  productTrustBadge1Title?: string;
+  productTrustBadge1Subtitle?: string;
+  productTrustBadge2Title?: string;
+  productTrustBadge2Subtitle?: string;
+  productConciergeTitle?: string;
+  productConciergeSubtitle?: string;
+  productConciergeBtnText?: string;
+  productConciergePhone?: string;
+  productConciergeWhatsappMessage?: string;
 
   // Rótulos de Botões Globais
   btnBuyNow: string;
@@ -161,6 +175,9 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   showCoaSection: true,
   showBenefitsSection: true,
   showProductCertificateBanner: true,
+  showProductFreightSimulator: true,
+  showProductTrustBadges: true,
+  showProductConcierge: true,
 
   // Textos do Painel de Consulta COA
   coaBadge: 'CONSULTA DE AUTENTICIDADE',
@@ -223,6 +240,20 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   productCertificateSubtitle:
     'Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.',
   productCertificateBtnText: 'Baixar Laudo Oficial (PDF)',
+  productFreightTitle: 'Simulador de Frete e Entrega Segura',
+  productFreightResultText:
+    'Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd\'s)',
+  productTrustBadge1Title: 'Seguro Total',
+  productTrustBadge1Subtitle: 'Apólice Lloyd\'s',
+  productTrustBadge2Title: 'Garantia Vitalícia',
+  productTrustBadge2Subtitle: 'Autenticidade Forense',
+  productConciergeTitle: 'Atendimento VIP & Concierge',
+  productConciergeSubtitle:
+    'Dúvidas sobre o produto ou agendamento de inspeção presencial.',
+  productConciergeBtnText: 'Falar Agora',
+  productConciergePhone: '+55 (11) 99842-1970',
+  productConciergeWhatsappMessage:
+    'Olá! Gostaria de atendimento VIP sobre uma peça no acervo da Diamond Relics.',
 
   // Rótulos de Botões Globais
   btnBuyNow: 'Comprar Agora',

@@ -2154,6 +2154,419 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+
+              {/* PAINEL 9: FRETE, SELOS DE GARANTIA & CONCIERGE WHATSAPP (PÁGINA DO PRODUTO) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-6">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">local_shipping</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        9. Frete, Selos de Garantia &amp; Concierge WhatsApp (Página da Peça)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Personalize textos, ative ou oculte o simulador de frete, os selos de segurança e o botão com link direto para WhatsApp com número de celular.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SUB-BLOCO 9.1: Simulador de Frete */}
+                <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#10B981] text-base">local_shipping</span>
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                        9.1 Simulador de Frete e Entrega Segura
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                          siteConfig.showProductFreightSimulator !== false
+                            ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                            : 'bg-[#282E3A] text-[#9CA3AF]'
+                        }`}
+                      >
+                        {siteConfig.showProductFreightSimulator !== false ? '🟢 Visível' : '⚪ Ocultado'}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={siteConfig.showProductFreightSimulator !== false}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, showProductFreightSimulator: e.target.checked })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {siteConfig.showProductFreightSimulator !== false && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Título do Simulador de Frete:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productFreightTitle ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
+                          }
+                          placeholder="Ex: Simulador de Frete e Entrega Segura"
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Texto do Resultado do Cálculo de Frete:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productFreightResultText ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productFreightResultText: e.target.value })
+                          }
+                          placeholder="Ex: Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd's)"
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SUB-BLOCO 9.2: Selos de Confiança */}
+                <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#f2ca50] text-base">shield</span>
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                        9.2 Selos de Confiança &amp; Garantia Vitalícia
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                          siteConfig.showProductTrustBadges !== false
+                            ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                            : 'bg-[#282E3A] text-[#9CA3AF]'
+                        }`}
+                      >
+                        {siteConfig.showProductTrustBadges !== false ? '🟢 Visível' : '⚪ Ocultado'}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={siteConfig.showProductTrustBadges !== false}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, showProductTrustBadges: e.target.checked })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {siteConfig.showProductTrustBadges !== false && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                      <div className="space-y-2 p-3 bg-[#12151B] rounded border border-[#282E3A]">
+                        <span className="text-[11px] text-[#f2ca50] font-bold block">Selo 1 (Segurança / Seguro):</span>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 text-[11px]">Título:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.productTrustBadge1Title ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productTrustBadge1Title: e.target.value })
+                            }
+                            placeholder="Ex: Seguro Total"
+                            className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 text-[11px]">Subtítulo:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.productTrustBadge1Subtitle ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productTrustBadge1Subtitle: e.target.value })
+                            }
+                            placeholder="Ex: Apólice Lloyd's"
+                            className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 p-3 bg-[#12151B] rounded border border-[#282E3A]">
+                        <span className="text-[11px] text-[#10B981] font-bold block">Selo 2 (Autenticidade / Garantia):</span>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 text-[11px]">Título:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.productTrustBadge2Title ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productTrustBadge2Title: e.target.value })
+                            }
+                            placeholder="Ex: Garantia Vitalícia"
+                            className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 text-[11px]">Subtítulo:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.productTrustBadge2Subtitle ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productTrustBadge2Subtitle: e.target.value })
+                            }
+                            placeholder="Ex: Autenticidade Forense"
+                            className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SUB-BLOCO 9.3: Atendimento VIP & Concierge WhatsApp */}
+                <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#f2ca50] text-base">support_agent</span>
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                        9.3 Atendimento VIP &amp; Concierge (Link WhatsApp Direto)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                          siteConfig.showProductConcierge !== false
+                            ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                            : 'bg-[#282E3A] text-[#9CA3AF]'
+                        }`}
+                      >
+                        {siteConfig.showProductConcierge !== false ? '🟢 Visível' : '⚪ Ocultado'}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={siteConfig.showProductConcierge !== false}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, showProductConcierge: e.target.checked })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {siteConfig.showProductConcierge !== false && (
+                    <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                      <div className="p-3 bg-[#12151B] border border-[#C59B27]/40 rounded-lg space-y-3">
+                        <div className="flex items-center gap-2 text-[#25D366]">
+                          <span className="material-symbols-outlined text-lg">chat</span>
+                          <span className="font-bold uppercase tracking-wider text-xs">
+                            Configuração do Celular / WhatsApp de Atendimento:
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                              Número de Celular / WhatsApp (com DDD):
+                            </label>
+                            <input
+                              type="text"
+                              value={siteConfig.productConciergePhone ?? ''}
+                              onChange={(e) =>
+                                setSiteConfig({ ...siteConfig, productConciergePhone: e.target.value })
+                              }
+                              placeholder="Ex: +55 (11) 99842-1970 ou 11998421970"
+                              className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                            />
+                            <p className="text-[10px] text-[#9CA3AF] mt-1 font-['Manrope']">
+                              Ao clicar em &quot;Falar Agora&quot;, o cliente abrirá diretamente a conversa no WhatsApp deste número.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                              Mensagem Padrão que o Cliente Enviará:
+                            </label>
+                            <input
+                              type="text"
+                              value={siteConfig.productConciergeWhatsappMessage ?? ''}
+                              onChange={(e) =>
+                                setSiteConfig({ ...siteConfig, productConciergeWhatsappMessage: e.target.value })
+                              }
+                              placeholder="Ex: Olá! Gostaria de atendimento VIP sobre uma peça no acervo da Diamond Relics."
+                              className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                            />
+                            <p className="text-[10px] text-[#9CA3AF] mt-1 font-['Manrope']">
+                              Texto pré-preenchido que aparecerá na tela do WhatsApp do cliente.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Título do Atendimento:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productConciergeTitle ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productConciergeTitle: e.target.value })
+                            }
+                            placeholder="Ex: Atendimento VIP & Concierge"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Texto do Botão:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productConciergeBtnText ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productConciergeBtnText: e.target.value })
+                            }
+                            placeholder="Ex: Falar Agora"
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                            Subtítulo / Descrição:
+                          </label>
+                          <input
+                            type="text"
+                            value={siteConfig.productConciergeSubtitle ?? ''}
+                            onChange={(e) =>
+                              setSiteConfig({ ...siteConfig, productConciergeSubtitle: e.target.value })
+                            }
+                            placeholder="Ex: Dúvidas sobre o produto ou agendamento de inspeção presencial."
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pré-visualização Fiel em Tempo Real (Fiel ao print do usuário) */}
+                <div className="pt-3 border-t border-[#282E3A]">
+                  <span className="text-[10px] text-[#9CA3AF] uppercase font-bold block mb-2">
+                    Pré-visualização em Tempo Real na Página da Peça:
+                  </span>
+
+                  <div className="bg-[#08090B] border border-[#282E3A] rounded-lg p-5 space-y-4 max-w-xl">
+                    {/* Preview Simulador de Frete */}
+                    {siteConfig.showProductFreightSimulator !== false ? (
+                      <div className="space-y-2">
+                        <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm text-[#10B981]">local_shipping</span>
+                          {siteConfig.productFreightTitle || 'SIMULADOR DE FRETE E ENTREGA SEGURA'}
+                        </span>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value="94824180"
+                            className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 cursor-default"
+                          />
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-[#1A1E26] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded"
+                          >
+                            Calcular
+                          </button>
+                        </div>
+                        <p className="text-xs font-['Space_Grotesk'] text-[#10B981] bg-[#10B981]/10 p-2.5 rounded border border-[#10B981]/20">
+                          {siteConfig.productFreightResultText ||
+                            "Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd's)"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-2 border border-dashed border-[#282E3A] rounded text-[11px] text-[#9CA3AF] text-center">
+                        Simulador de Frete: Ocultado na Loja
+                      </div>
+                    )}
+
+                    {/* Preview Selos de Confiança */}
+                    {siteConfig.showProductTrustBadges !== false ? (
+                      <div className="grid grid-cols-2 gap-3 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                        <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
+                          <div>
+                            <strong className="text-[#F4F1EA] block text-[11px]">
+                              {siteConfig.productTrustBadge1Title || 'Seguro Total'}
+                            </strong>
+                            <span className="text-[10px]">
+                              {siteConfig.productTrustBadge1Subtitle || "Apólice Lloyd's"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[#10B981] text-lg">policy</span>
+                          <div>
+                            <strong className="text-[#F4F1EA] block text-[11px]">
+                              {siteConfig.productTrustBadge2Title || 'Garantia Vitalícia'}
+                            </strong>
+                            <span className="text-[10px]">
+                              {siteConfig.productTrustBadge2Subtitle || 'Autenticidade Forense'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2 border border-dashed border-[#282E3A] rounded text-[11px] text-[#9CA3AF] text-center">
+                        Selos de Garantia: Ocultados na Loja
+                      </div>
+                    )}
+
+                    {/* Preview Concierge VIP com botão WhatsApp */}
+                    {siteConfig.showProductConcierge !== false ? (
+                      <div className="p-4 bg-gradient-to-r from-[#1A1E26] to-[#12151B] border border-[#C59B27]/40 rounded-lg flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="material-symbols-outlined text-[#f2ca50]">support_agent</span>
+                          <div>
+                            <h5 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk']">
+                              {siteConfig.productConciergeTitle || 'Atendimento VIP & Concierge'}
+                            </h5>
+                            <p className="text-[11px] text-[#9CA3AF]">
+                              {siteConfig.productConciergeSubtitle ||
+                                'Dúvidas sobre o produto ou agendamento de inspeção presencial.'}
+                            </p>
+                            <span className="text-[10px] text-[#25D366] flex items-center gap-1 mt-0.5">
+                              <span className="material-symbols-outlined text-xs">phone</span>
+                              WhatsApp: {siteConfig.productConciergePhone || siteConfig.contactPhone || '+55 (11) 99842-1970'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="px-3.5 py-2 bg-[#08090B] border border-[#C59B27] text-xs font-['Space_Grotesk'] font-bold text-[#f2ca50] rounded shrink-0 flex items-center gap-1.5 shadow-sm">
+                          <span>{siteConfig.productConciergeBtnText || 'Falar Agora'}</span>
+                          <span className="material-symbols-outlined text-sm text-[#25D366]">chat</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2 border border-dashed border-[#282E3A] rounded text-[11px] text-[#9CA3AF] text-center">
+                        Atendimento VIP &amp; Concierge: Ocultado na Loja
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Botão de Salvar Rodapé */}
@@ -2712,6 +3125,298 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* SEÇÃO 4.2: Simulador de Frete e Entrega Segura */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+              <div className="border-b border-[#282E3A] pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#10B981] text-lg">local_shipping</span>
+                  <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                    4.2 Simulador de Frete e Entrega Segura (Página da Peça)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                      siteConfig.showProductFreightSimulator !== false
+                        ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                        : 'bg-[#282E3A] text-[#9CA3AF]'
+                    }`}
+                  >
+                    {siteConfig.showProductFreightSimulator !== false ? '🟢 Ativo' : '⚪ Ocultado'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={siteConfig.showProductFreightSimulator !== false}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, showProductFreightSimulator: e.target.checked })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                  </label>
+                </div>
+              </div>
+
+              {siteConfig.showProductFreightSimulator !== false && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk']">
+                  <div>
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Título do Simulador de Frete:
+                    </label>
+                    <input
+                      type="text"
+                      value={siteConfig.productFreightTitle ?? ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, productFreightTitle: e.target.value })
+                      }
+                      placeholder="Ex: Simulador de Frete e Entrega Segura"
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Texto do Resultado do Cálculo de Frete:
+                    </label>
+                    <input
+                      type="text"
+                      value={siteConfig.productFreightResultText ?? ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, productFreightResultText: e.target.value })
+                      }
+                      placeholder="Ex: Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd's)"
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SEÇÃO 4.3: Selos de Confiança e Garantias */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+              <div className="border-b border-[#282E3A] pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
+                  <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                    4.3 Selos de Confiança &amp; Garantias (Página da Peça)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                      siteConfig.showProductTrustBadges !== false
+                        ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                        : 'bg-[#282E3A] text-[#9CA3AF]'
+                    }`}
+                  >
+                    {siteConfig.showProductTrustBadges !== false ? '🟢 Ativo' : '⚪ Ocultado'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={siteConfig.showProductTrustBadges !== false}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, showProductTrustBadges: e.target.checked })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                  </label>
+                </div>
+              </div>
+
+              {siteConfig.showProductTrustBadges !== false && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk']">
+                  <div className="space-y-2 p-3 bg-[#08090B] rounded border border-[#282E3A]">
+                    <span className="text-[11px] text-[#f2ca50] font-bold block">Selo 1 (Seguro):</span>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 text-[11px]">Título:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.productTrustBadge1Title ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productTrustBadge1Title: e.target.value })
+                        }
+                        placeholder="Ex: Seguro Total"
+                        className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 text-[11px]">Subtítulo:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.productTrustBadge1Subtitle ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productTrustBadge1Subtitle: e.target.value })
+                        }
+                        placeholder="Ex: Apólice Lloyd's"
+                        className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 p-3 bg-[#08090B] rounded border border-[#282E3A]">
+                    <span className="text-[11px] text-[#10B981] font-bold block">Selo 2 (Garantia):</span>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 text-[11px]">Título:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.productTrustBadge2Title ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productTrustBadge2Title: e.target.value })
+                        }
+                        placeholder="Ex: Garantia Vitalícia"
+                        className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 text-[11px]">Subtítulo:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.productTrustBadge2Subtitle ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productTrustBadge2Subtitle: e.target.value })
+                        }
+                        placeholder="Ex: Autenticidade Forense"
+                        className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SEÇÃO 4.4: Atendimento VIP & Concierge (Link Direto WhatsApp) */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+              <div className="border-b border-[#282E3A] pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">support_agent</span>
+                  <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                    4.4 Atendimento VIP &amp; Concierge WhatsApp (Página da Peça)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                      siteConfig.showProductConcierge !== false
+                        ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                        : 'bg-[#282E3A] text-[#9CA3AF]'
+                    }`}
+                  >
+                    {siteConfig.showProductConcierge !== false ? '🟢 Ativo' : '⚪ Ocultado'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={siteConfig.showProductConcierge !== false}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, showProductConcierge: e.target.checked })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                  </label>
+                </div>
+              </div>
+
+              {siteConfig.showProductConcierge !== false && (
+                <div className="space-y-4 text-xs font-['Space_Grotesk']">
+                  <div className="p-3 bg-[#08090B] border border-[#C59B27]/40 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 text-[#25D366]">
+                      <span className="material-symbols-outlined text-lg">chat</span>
+                      <span className="font-bold uppercase tracking-wider text-xs">
+                        Número do WhatsApp para Atendimento Direto:
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Celular / WhatsApp (com DDD):
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productConciergePhone ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productConciergePhone: e.target.value })
+                          }
+                          placeholder="Ex: +55 (11) 99842-1970"
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                        />
+                        <p className="text-[10px] text-[#9CA3AF] mt-1 font-['Manrope']">
+                          O botão &quot;Falar Agora&quot; abre diretamente a conversa do WhatsApp neste celular.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Mensagem Inicial Pré-definida:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productConciergeWhatsappMessage ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productConciergeWhatsappMessage: e.target.value })
+                          }
+                          placeholder="Ex: Olá! Gostaria de atendimento VIP sobre uma peça no acervo da Diamond Relics."
+                          className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#25D366]"
+                        />
+                        <p className="text-[10px] text-[#9CA3AF] mt-1 font-['Manrope']">
+                          Texto que aparecerá pronto para o cliente enviar.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Título do Card:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productConciergeTitle ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productConciergeTitle: e.target.value })
+                        }
+                        placeholder="Ex: Atendimento VIP & Concierge"
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Texto do Botão:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productConciergeBtnText ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productConciergeBtnText: e.target.value })
+                        }
+                        placeholder="Ex: Falar Agora"
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Subtítulo / Descrição:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.productConciergeSubtitle ?? ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, productConciergeSubtitle: e.target.value })
+                        }
+                        placeholder="Ex: Dúvidas sobre o produto ou agendamento de inspeção presencial."
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SEÇÃO 5: Rótulos Globais de Botões de Compra */}
