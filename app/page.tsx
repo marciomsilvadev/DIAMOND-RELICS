@@ -47,9 +47,9 @@ function ShowcaseCard({ item, config, openImage }: ShowcaseCardProps) {
 
   return (
     <article className="bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(242,202,80,0.12)] flex flex-col group">
-      {/* Container de Imagem com Auto-Ajuste Sem Cortes */}
+      {/* Container de Imagem com Auto-Ajuste Sem Cortes e Espaçamento Seguro */}
       <div
-        className="relative aspect-[4/3] bg-[#07090c] overflow-hidden flex items-center justify-center p-2.5 border-b border-[#282E3A]/60 group/cardimg select-none"
+        className="relative aspect-[4/3] bg-[#07090c] overflow-hidden flex items-center justify-center p-4 sm:p-5 border-b border-[#282E3A]/60 group/cardimg select-none"
         onMouseEnter={() => setIsCardHovered(true)}
         onMouseLeave={() => setIsCardHovered(false)}
       >
@@ -68,8 +68,8 @@ function ShowcaseCard({ item, config, openImage }: ShowcaseCardProps) {
           className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] select-none"
         />
 
-        {/* Badges superiores */}
-        <div className="absolute top-3 left-3 z-20 flex flex-col gap-1 pointer-events-none">
+        {/* Badges superiores com z-20 */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1 pointer-events-none">
           {item.status === 'sold' ? (
             <span className="px-2 py-0.5 bg-red-950/90 border border-red-500 text-red-400 text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
@@ -170,6 +170,19 @@ function ShowcaseCard({ item, config, openImage }: ShowcaseCardProps) {
           <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-1.5 line-clamp-2">
             {item.description}
           </p>
+
+          {/* Faixa de SKU e Quantidade de Fotos */}
+          <div className="flex items-center justify-between text-[11px] font-['Space_Grotesk'] pt-2 text-[#9CA3AF]">
+            <span className="bg-[#08090B] border border-[#282E3A] px-2 py-0.5 rounded text-[10px]">
+              SKU: {item.sku}
+            </span>
+            {cardImages.length > 1 && (
+              <span className="text-[#E5C875] text-[10px] flex items-center gap-1 font-semibold">
+                <span className="material-symbols-outlined text-xs">photo_library</span>
+                {cardImages.length} fotos
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="pt-3 border-t border-[#282E3A]">

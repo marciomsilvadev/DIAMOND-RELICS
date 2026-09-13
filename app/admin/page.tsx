@@ -975,7 +975,7 @@ export default function AdminPage() {
                         </span>
                       </div>
                       <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
-                        Selecione o tipo de conteúdo exibido no quadro ao lado do texto da Home: Destaque da Galeria (como era antes), Produtos da Vitrine ou Logotipo da Empresa em Tamanho Maior.
+                        Selecione o tipo de conteúdo exibido no quadro ao lado do texto da Home: Destaque da Galeria, Produtos da Vitrine ou Logotipo da Empresa em Tamanho Maior.
                       </p>
                     </div>
                   </div>
@@ -1004,7 +1004,7 @@ export default function AdminPage() {
                   </label>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Botão 1: Destaque da Galeria (Como era antes) */}
+                    {/* Botão 1: Destaque da Galeria */}
                     <button
                       type="button"
                       onClick={() =>
@@ -1031,7 +1031,7 @@ export default function AdminPage() {
                       </div>
                       <div>
                         <span className="font-bold text-xs block text-[#F4F1EA]">
-                          1. Destaque da Galeria (Como era antes)
+                          1. Destaque da Galeria
                         </span>
                         <span className="text-[11px] leading-tight text-[#9CA3AF] block mt-1 font-['Manrope']">
                           Card com carrossel de fotos, miniaturas clicáveis, preço em R$ e botão Comprar.
@@ -1074,7 +1074,7 @@ export default function AdminPage() {
                       </div>
                     </button>
 
-                    {/* Botão 3: Logotipo da Empresa em Tamanho Maior (Conforme Imagem 2) */}
+                    {/* Botão 3: Logotipo da Empresa em Tamanho Maior */}
                     <button
                       type="button"
                       onClick={() =>
@@ -1104,7 +1104,7 @@ export default function AdminPage() {
                           3. Logotipo em Tamanho Maior
                         </span>
                         <span className="text-[11px] leading-tight text-[#9CA3AF] block mt-1 font-['Manrope']">
-                          Brasão 3D dourado da Diamond Relics com @diamond.relics (conforme imagem 2).
+                          Brasão 3D dourado da Diamond Relics com @diamond.relics.
                         </span>
                       </div>
                     </button>
@@ -1113,7 +1113,7 @@ export default function AdminPage() {
 
                 {/* PAINEL DINÂMICO CONFORME O MODO SELECIONADO */}
 
-                {/* MODO 3: LOGOTIPO EM TAMANHO MAIOR (CONFORME IMAGEM 2) */}
+                {/* MODO 3: LOGOTIPO EM TAMANHO MAIOR */}
                 {siteConfig.heroDisplayMode === 'logo' && (
                   <div className="p-4 sm:p-5 bg-[#08090B] border border-[#f2ca50]/40 rounded-lg space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
@@ -1128,10 +1128,10 @@ export default function AdminPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      {/* Pré-visualização Fiel ao Exemplo da Segunda Imagem */}
+                      {/* Pré-visualização */}
                       <div className="md:col-span-5 bg-[#050608] border border-[#282E3A] rounded-xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
                         <div className="absolute top-2 left-3 text-[9px] font-['Space_Grotesk'] text-[#9CA3AF] uppercase">
-                          Pré-visualização da Home (Imagem 2)
+                          Pré-visualização da Home
                         </div>
                         {/* Glow Dourado Ambiente de Fundo */}
                         <div className="absolute -inset-4 bg-[#f2ca50]/10 rounded-full blur-2xl pointer-events-none" />
@@ -1225,13 +1225,13 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {/* MODO 1: DESTAQUE DA GALERIA (COMO ERA ANTES) */}
+                {/* MODO 1: DESTAQUE DA GALERIA */}
                 {(!siteConfig.heroDisplayMode || siteConfig.heroDisplayMode === 'product') && (
                   <div className="p-4 sm:p-5 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
                       <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-sm text-[#f2ca50]">photo_library</span>
-                        Configuração do Destaque da Galeria (Produto)
+                        Configuração do Destaque da Galeria
                       </span>
                       <span className="text-[10px] text-[#10B981] font-['Space_Grotesk'] font-bold flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>

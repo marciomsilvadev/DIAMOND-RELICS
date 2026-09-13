@@ -10,6 +10,227 @@ import { RelicItem, CATALOG_RELICS } from '@/lib/relics-data';
 import { getStoredProducts } from '@/lib/products-store';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
 
+interface CatalogProductCardProps {
+  relic: RelicItem;
+  config: SiteConfig;
+  openImage: (imageUrl: string, title: string, subtitle?: string) => void;
+}
+
+function CatalogProductCard({ relic, config, openImage }: CatalogProductCardProps) {
+  const [imgIndex, setImgIndex] = useState(0);
+
+  // Reúne todas as imagens da peça
+  const cardImages: string[] = [];
+  if (relic.imageUrl) cardImages.push(relic.imageUrl);
+  if (relic.gallery && relic.gallery.length > 0) {
+    relic.gallery.forEach((g) => {
+      if (g.url && (g.type !== 'video' || !g.type) && !cardImages.includes(g.url)) {
+        cardImages.push(g.url);
+      }
+    });
+  }
+  if (cardImages.length === 0 && relic.imageUrl) {
+    cardImages.push(relic.imageUrl);
+  }
+
+  const currentImg = cardImages[imgIndex % cardImages.length] || relic.imageUrl;
+
+  return (
+    <article className="bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(242,202,80,0.12)] flex flex-col group">
+      {/* Container da Imagem: Isolado e com Espaçamento Seguro para NÃO Cobrir Texto */}
+      <div className="relative aspect-[4/3] bg-[#07090c] overflow-hidden flex items-center justify-center p-4 sm:p-5 border-b border-[#282E3A]/60 select-none group/catalogimg">
+        {/* Ambient Glow Backdrop */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-25 blur-xl scale-125 pointer-events-none transition-all duration-500"
+          style={{ backgroundImage: `url(${currentImg})` }}
+        />
+        <div className="absolute inset-0 bg-[#08090B]/60 pointer-events-none" />
+
+        {/* Imagem Real 100% Visível sem Cortes e sem Colidir com Textos */}
+        <img
+          key={currentImg}
+          src={currentImg}
+          alt={relic.altText || relic.title}
+          className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] select-none"
+        />
+
+        {/* Badges Superiores com z-20 para nunca ficarem atrás */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1 pointer-events-none">
+          {relic.status === 'sold' ? (
+            <span className="px-2.5 py-0.5 bg-red-950/90 border border-red-500 text-red-400 text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1 shadow-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              {config.btnSoldOut || 'Vendido'}
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 bg-[#08090B]/90 border border-[#10B981] text-[#10B981] text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1 shadow-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+              {relic.statusLabel}
+            </span>
+          )}
+
+          {relic.featured && (
+            <span className="px-2 py-0.5 bg-[#f2ca50]/20 border border-[#f2ca50] text-[#f2ca50] text-[9px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-0.5 shadow-sm">
+              <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                star
+              </span>
+              Destaque
+            </span>
+          )}
+        </div>
+
+        {/* Botão de Ampliação com z-20 */}
+        <div className="absolute top-2.5 right-2.5 z-20">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openImage(currentImg, relic.title, relic.sku);
+            }}
+            className="p-1.5 bg-[#08090B]/85 hover:bg-[#f2ca50] hover:text-[#08090B] text-[#F4F1EA] rounded-full border border-[#282E3A] transition-all shadow-md backdrop-blur-sm"
+            title="Ver foto em alta resolução"
+          >
+            <span className="material-symbols-outlined text-base">zoom_in</span>
+          </button>
+        </div>
+
+        {/* Controles de Navegação de Fotos na Galeria */}
+        {cardImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setImgIndex((prev) => (prev - 1 + cardImages.length) % cardImages.length);
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#08090B]/85 hover:bg-[#f2ca50] text-[#F4F1EA] hover:text-[#08090B] border border-[#282E3A] flex items-center justify-center transition-all opacity-0 group-hover/catalogimg:opacity-100 shadow-lg backdrop-blur-sm"
+              title="Foto anterior"
+            >
+              <span className="material-symbols-outlined text-base">chevron_left</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setImgIndex((prev) => (prev + 1) % cardImages.length);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#08090B]/85 hover:bg-[#f2ca50] text-[#F4F1EA] hover:text-[#08090B] border border-[#282E3A] flex items-center justify-center transition-all opacity-0 group-hover/catalogimg:opacity-100 shadow-lg backdrop-blur-sm"
+              title="Próxima foto"
+            >
+              <span className="material-symbols-outlined text-base">chevron_right</span>
+            </button>
+
+            {/* Dots Indicadores de Foto no Rodapé da Foto */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-[#08090B]/85 px-2 py-0.5 rounded-full border border-[#282E3A] backdrop-blur-sm">
+              {cardImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setImgIndex(idx);
+                  }}
+                  className={`transition-all rounded-full ${
+                    idx === imgIndex % cardImages.length
+                      ? 'w-3.5 h-1 bg-[#f2ca50]'
+                      : 'w-1 h-1 bg-white/40 hover:bg-white/80'
+                  }`}
+                  title={`Foto ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Conteúdo do Card: 100% Separado da Imagem, Evitando Qualquer Sobreposição */}
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div>
+          {/* Categoria, Ano e Selo Certificado */}
+          <div className="flex justify-between items-center text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] mb-1.5">
+            <span className="uppercase text-[#C59B27] font-semibold tracking-wider truncate mr-2">
+              {relic.category} {relic.year ? `• Ano ${relic.year}` : ''}
+            </span>
+            <span className="text-[#10B981] text-[10px] flex items-center gap-0.5 font-medium shrink-0">
+              <span className="material-symbols-outlined text-xs">verified</span>
+              Certificado
+            </span>
+          </div>
+
+          <h3 className="text-base sm:text-lg font-['Playfair_Display'] font-bold text-[#F4F1EA] group-hover:text-[#E5C875] transition-colors leading-snug">
+            {relic.title}
+          </h3>
+
+          <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-1.5 line-clamp-2 leading-relaxed">
+            {relic.description}
+          </p>
+
+          {/* Faixa de SKU e Quantidade de Fotos na Galeria */}
+          <div className="flex items-center justify-between text-[11px] font-['Space_Grotesk'] pt-2 text-[#9CA3AF]">
+            <span className="bg-[#08090B] border border-[#282E3A] px-2 py-0.5 rounded text-[10px]">
+              SKU: {relic.sku}
+            </span>
+            {cardImages.length > 1 && (
+              <span className="text-[#E5C875] text-[10px] flex items-center gap-1 font-semibold">
+                <span className="material-symbols-outlined text-xs">photo_library</span>
+                {cardImages.length} fotos na galeria
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Preço em Reais e Ações de Compra */}
+        <div className="pt-3 border-t border-[#282E3A]">
+          <div className="mb-3">
+            <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
+              Preço de Venda
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#f2ca50]">
+                R$ {(Number(relic.priceBRL) || 0).toLocaleString('pt-BR')},00
+              </span>
+              <span className="text-[10px] font-['Space_Grotesk'] text-[#10B981] font-semibold">
+                (à vista no PIX)
+              </span>
+            </div>
+            <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] block mt-0.5">
+              ou {relic.installments || '12x sem juros'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href={`/product?id=${relic.id}`}
+              className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#F4F1EA] text-xs font-['Manrope'] font-medium rounded transition-colors text-center"
+            >
+              <span className="material-symbols-outlined text-sm">visibility</span>
+              {config.btnViewDetails}
+            </Link>
+
+            {relic.status === 'sold' ? (
+              <span className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-red-900/40 text-red-400/80 text-xs font-['Manrope'] font-bold uppercase rounded text-center cursor-not-allowed select-none">
+                <span className="material-symbols-outlined text-sm">lock</span>
+                {config.btnSoldOut || 'Vendido'}
+              </span>
+            ) : (
+              <Link
+                href="/checkout"
+                className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                {config.btnBuyNow}
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function CatalogPage() {
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [selectedSports, setSelectedSports] = useState<string[]>([
@@ -392,143 +613,12 @@ export default function CatalogPage() {
                 }`}
               >
                 {filteredRelics.map((relic) => (
-                  <article
+                  <CatalogProductCard
                     key={relic.id}
-                    className="bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(242,202,80,0.12)] flex flex-col group"
-                  >
-                    {/* Imagem do Produto com Auto-Ajuste Sem Cortes */}
-                    <div className="relative aspect-[4/3] bg-[#07090c] overflow-hidden flex items-center justify-center p-2.5 border-b border-[#282E3A]/60 select-none">
-                      {/* Ambient Glow Backdrop */}
-                      <div
-                        className="absolute inset-0 bg-cover bg-center opacity-25 blur-xl scale-125 pointer-events-none transition-all duration-500"
-                        style={{ backgroundImage: `url(${relic.imageUrl})` }}
-                      />
-                      <div className="absolute inset-0 bg-[#08090B]/55 pointer-events-none" />
-
-                      {/* Imagem Real 100% Visível sem Cortes */}
-                      <img
-                        src={relic.imageUrl}
-                        alt={relic.altText}
-                        className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] select-none"
-                      />
-
-                      {/* Botão de Ampliação */}
-                      <button
-                        onClick={() => openImage(relic.imageUrl, relic.title, relic.sku)}
-                        className="absolute top-3 right-3 p-1.5 bg-[#08090B]/80 hover:bg-[#f2ca50] hover:text-[#08090B] text-[#F4F1EA] rounded-full border border-[#282E3A] transition-all"
-                        title="Ver foto em alta resolução"
-                      >
-                        <span className="material-symbols-outlined text-base">zoom_in</span>
-                      </button>
-
-                      {/* Badge de Disponibilidade */}
-                      <div className="absolute top-3 left-3 flex flex-col gap-1">
-                        {relic.status === 'sold' ? (
-                          <span className="px-2.5 py-0.5 bg-red-950/90 border border-red-500 text-red-400 text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                            {config.btnSoldOut || 'Vendido'}
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-0.5 bg-[#08090B]/90 border border-[#10B981] text-[#10B981] text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                            {relic.statusLabel}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="absolute bottom-2 left-3 right-3 flex justify-between items-end text-[11px] font-['Space_Grotesk']">
-                        <span className="text-[#9CA3AF] bg-[#08090B]/80 px-2 py-0.5 rounded border border-[#282E3A]">
-                          SKU: {relic.sku}
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          {relic.gallery && relic.gallery.length > 1 && (
-                            <span
-                              className="text-[#E5C875] bg-[#08090B]/85 px-1.5 py-0.5 rounded border border-[#282E3A] flex items-center gap-1 text-[10px]"
-                              title={`${relic.gallery.length} fotos e vídeos na galeria`}
-                            >
-                              <span className="material-symbols-outlined text-xs">
-                                {relic.gallery.some((g) => g.type === 'video')
-                                  ? 'videocam'
-                                  : 'photo_library'}
-                              </span>
-                              {relic.gallery.length}
-                            </span>
-                          )}
-                          <span className="text-[#f2ca50] bg-[#08090B]/80 px-2 py-0.5 rounded border border-[#282E3A]">
-                            Ano {relic.year}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Conteúdo do Card */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div>
-                        <div className="flex justify-between items-center text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] mb-1">
-                          <span className="uppercase text-[#C59B27] font-semibold">
-                            {relic.category}
-                          </span>
-                          <span className="text-[#10B981] text-[10px] flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-xs">verified</span>
-                            Certificado
-                          </span>
-                        </div>
-
-                        <h3 className="text-base sm:text-lg font-['Playfair_Display'] font-bold text-[#F4F1EA] group-hover:text-[#E5C875] transition-colors leading-snug">
-                          {relic.title}
-                        </h3>
-
-                        <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-1.5 line-clamp-2 leading-relaxed">
-                          {relic.description}
-                        </p>
-                      </div>
-
-                      {/* Preço em Reais e Ações de Compra */}
-                      <div className="pt-3 border-t border-[#282E3A]">
-                        <div className="mb-3">
-                          <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
-                            Preço de Venda
-                          </span>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#f2ca50]">
-                              R$ {(Number(relic.priceBRL) || 0).toLocaleString('pt-BR')},00
-                            </span>
-                            <span className="text-[10px] font-['Space_Grotesk'] text-[#10B981] font-semibold">
-                              (à vista no PIX)
-                            </span>
-                          </div>
-                          <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] block mt-0.5">
-                            ou {relic.installments || '12x sem juros'}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <Link
-                            href={`/product?id=${relic.id}`}
-                            className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#F4F1EA] text-xs font-['Manrope'] font-medium rounded transition-colors text-center"
-                          >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                            {config.btnViewDetails}
-                          </Link>
-
-                          {relic.status === 'sold' ? (
-                            <span className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-red-900/40 text-red-400/80 text-xs font-['Manrope'] font-bold uppercase rounded text-center cursor-not-allowed select-none">
-                              <span className="material-symbols-outlined text-sm">lock</span>
-                              {config.btnSoldOut || 'Vendido'}
-                            </span>
-                          ) : (
-                            <Link
-                              href="/checkout"
-                              className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm"
-                            >
-                              <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                              {config.btnBuyNow}
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
+                    relic={relic}
+                    config={config}
+                    openImage={openImage}
+                  />
                 ))}
               </div>
             )}
