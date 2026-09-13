@@ -3642,6 +3642,19 @@ export default function AdminPage() {
                     className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
                   />
                 </div>
+
+                <div>
+                  <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                    Botão &quot;Limpar / Esvaziar Carrinho&quot;:
+                  </label>
+                  <input
+                    type="text"
+                    value={siteConfig.btnClearCart || ''}
+                    onChange={(e) => setSiteConfig({ ...siteConfig, btnClearCart: e.target.value })}
+                    placeholder="Esvaziar Carrinho"
+                    className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                  />
+                </div>
               </div>
             </div>
 

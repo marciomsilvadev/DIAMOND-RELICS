@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { RELIC_IMAGES } from '@/lib/relics-data';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
 import { getCurrentSession, logout, AuthSession } from '@/lib/auth-store';
+import { getCartCount } from '@/lib/cart-store';
 
 interface NavbarProps {
   currentSearch?: string;
@@ -12,27 +13,32 @@ interface NavbarProps {
   cartCount?: number;
 }
 
-export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarProps) {
+export function Navbar({ currentSearch, onSearchChange, cartCount }: NavbarProps) {
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [showNotifications, setShowNotifications] = useState(false);
   const [internalSearch, setInternalSearch] = useState('');
   const [session, setSession] = useState<AuthSession | null>(null);
+  const [actualCartCount, setActualCartCount] = useState<number>(0);
 
   useEffect(() => {
     setConfig(getStoredSiteConfig());
     setSession(getCurrentSession());
+    setActualCartCount(cartCount !== undefined ? cartCount : getCartCount());
 
     const handleUpdate = () => setConfig(getStoredSiteConfig());
     const handleSession = () => setSession(getCurrentSession());
+    const handleCart = () => setActualCartCount(getCartCount());
 
     window.addEventListener('diamond_config_updated', handleUpdate);
     window.addEventListener('diamond_session_updated', handleSession);
+    window.addEventListener('diamond_cart_updated', handleCart);
 
     return () => {
       window.removeEventListener('diamond_config_updated', handleUpdate);
       window.removeEventListener('diamond_session_updated', handleSession);
+      window.removeEventListener('diamond_cart_updated', handleCart);
     };
-  }, []);
+  }, [cartCount]);
 
   return (
     <header className="flex justify-between items-center w-full px-4 sm:px-6 py-3.5 bg-[#08090B] border-b border-[#282E3A] sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
@@ -116,7 +122,7 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
             <span className="material-symbols-outlined text-base">shopping_bag</span>
             <span className="hidden sm:inline">Carrinho</span>
             <span className="bg-[#08090B] text-[#f2ca50] text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">
-              {cartCount}
+              {actualCartCount}
             </span>
           </Link>
         </div>

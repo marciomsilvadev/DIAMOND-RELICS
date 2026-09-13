@@ -11,6 +11,7 @@ import { RELIC_IMAGES, RelicItem, CATALOG_RELICS } from '@/lib/relics-data';
 import { getStoredProducts } from '@/lib/products-store';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
 import { preloadHdImage } from '@/lib/media-helper';
+import { addToCart } from '@/lib/cart-store';
 
 function ProductContent() {
   const searchParams = useSearchParams();
@@ -350,6 +351,16 @@ function ProductContent() {
 
   const handleAddToCart = () => {
     if (isSold) return;
+    addToCart({
+      id: `cart-${product.id}`,
+      productId: product.id,
+      title: product.title,
+      sku: product.sku || `PROD-${product.id}`,
+      price: product.priceBRL || 4850000,
+      imageUrl: product.imageUrl,
+      details: `Qtd: 1 un. • ${product.category || 'Peça Única de Colecionador'}`,
+      quantity: 1,
+    });
     setCartAddedToast(true);
     setTimeout(() => setCartAddedToast(false), 3500);
   };
@@ -968,7 +979,19 @@ function ProductContent() {
                   <>
                     <Link
                       href="/checkout"
-                      className="w-full py-4 px-6 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(242,202,80,0.25)] flex items-center justify-center gap-2"
+                      onClick={() => {
+                        addToCart({
+                          id: `cart-${product.id}`,
+                          productId: product.id,
+                          title: product.title,
+                          sku: product.sku || `PROD-${product.id}`,
+                          price: product.priceBRL || 4850000,
+                          imageUrl: product.imageUrl,
+                          details: `Qtd: 1 un. • ${product.category || 'Peça Única de Colecionador'}`,
+                          quantity: 1,
+                        });
+                      }}
+                      className="w-full py-4 px-6 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(242,202,80,0.25)] flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-xl">shopping_cart_checkout</span>
                       {config.btnBuyNow} com Frete Grátis

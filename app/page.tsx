@@ -9,6 +9,7 @@ import { ImageModal } from '@/components/ImageModal';
 import { RELIC_IMAGES, RelicItem, CATALOG_RELICS } from '@/lib/relics-data';
 import { getStoredProducts } from '@/lib/products-store';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
+import { addToCart } from '@/lib/cart-store';
 
 // Componente individual de Card da Vitrine com Auto-Ajuste sem cortes e navegação de imagens
 interface ShowcaseCardProps {
@@ -215,7 +216,19 @@ function ShowcaseCard({ item, config, openImage }: ShowcaseCardProps) {
             ) : (
               <Link
                 href="/checkout"
-                className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm"
+                onClick={() => {
+                  addToCart({
+                    id: `cart-${item.id}`,
+                    productId: item.id,
+                    title: item.title,
+                    sku: item.sku || `PROD-${item.id}`,
+                    price: item.priceBRL || 1500000,
+                    imageUrl: item.imageUrl,
+                    details: `Qtd: 1 un. • ${item.category || 'Peça Única de Colecionador'}`,
+                    quantity: 1,
+                  });
+                }}
+                className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">shopping_cart</span>
                 {config.btnBuyNow}

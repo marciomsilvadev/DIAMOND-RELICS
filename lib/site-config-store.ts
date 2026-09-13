@@ -116,6 +116,7 @@ export interface SiteConfig {
   btnViewDetails: string;
   btnAddToCart: string;
   btnSoldOut: string;
+  btnClearCart?: string;
 
   // Rodapé & Institucional
   footerDescription: string;
@@ -270,6 +271,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   btnViewDetails: 'Ver Detalhes',
   btnAddToCart: 'Adicionar ao Carrinho',
   btnSoldOut: 'Peça Vendida',
+  btnClearCart: 'Esvaziar Carrinho',
 
   // Rodapé & Institucional
   footerDescription:
