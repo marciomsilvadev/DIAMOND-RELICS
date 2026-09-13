@@ -822,38 +822,56 @@ function ProductContent() {
             </div>
 
             {/* Certificação & Laudo Forense */}
-            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded bg-[#08090B] border border-[#C59B27] flex items-center justify-center text-[#f2ca50] shrink-0">
-                  <span className="material-symbols-outlined text-2xl">verified</span>
+            {config.showProductCertificateBanner !== false && (
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded bg-[#08090B] border border-[#C59B27] flex items-center justify-center text-[#f2ca50] shrink-0">
+                    <span className="material-symbols-outlined text-2xl">verified</span>
+                  </div>
+                  <div>
+                    {config.productCertificateTitle !== undefined ? (
+                      config.productCertificateTitle.trim() !== '' && (
+                        <h4 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                          {config.productCertificateTitle}
+                        </h4>
+                      )
+                    ) : (
+                      <h4 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                        Certificado de Autenticidade Vitalício #COA-9801
+                      </h4>
+                    )}
+                    {config.productCertificateSubtitle !== undefined ? (
+                      config.productCertificateSubtitle.trim() !== '' && (
+                        <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                          {config.productCertificateSubtitle}
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
-                    Certificado de Autenticidade Vitalício #COA-9801
-                  </h4>
-                  <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
-                    Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.
-                  </p>
-                </div>
-              </div>
 
-              <button
-                onClick={handleDownloadPdf}
-                disabled={downloadingReport}
-                className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#C59B27] text-[#f2ca50] text-xs font-['Space_Grotesk'] font-semibold rounded flex items-center gap-1.5 transition-colors shrink-0"
-              >
-                <span className="material-symbols-outlined text-base">
-                  {downloadingReport ? 'hourglass_top' : reportDownloaded ? 'check' : 'download'}
-                </span>
-                <span>
-                  {downloadingReport
-                    ? 'Gerando Laudo...'
-                    : reportDownloaded
-                    ? 'Laudo Baixado!'
-                    : 'Baixar Laudo Oficial (PDF)'}
-                </span>
-              </button>
-            </div>
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingReport}
+                  className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#C59B27] text-[#f2ca50] text-xs font-['Space_Grotesk'] font-semibold rounded flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {downloadingReport ? 'hourglass_top' : reportDownloaded ? 'check' : 'download'}
+                  </span>
+                  <span>
+                    {downloadingReport
+                      ? 'Gerando Laudo...'
+                      : reportDownloaded
+                      ? 'Laudo Baixado!'
+                      : (config.productCertificateBtnText || 'Baixar Laudo Oficial (PDF)')}
+                  </span>
+                </button>
+              </div>
+            )}
           </section>
 
           {/* Right Column: Commercial Details, Price & Buying Box */}

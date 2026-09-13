@@ -2016,6 +2016,144 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+
+              {/* PAINEL 8: CERTIFICADO DE AUTENTICIDADE & LAUDO OFICIAL (PÁGINA DO PRODUTO) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">verified</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        8. Certificado de Autenticidade &amp; Laudo Oficial (Página do Produto)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Quadro com selo oficial de autenticidade vitalícia e botão para baixar o Laudo Pericial em PDF.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showProductCertificateBanner !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.showProductCertificateBanner !== false ? '🟢 Exibido no Produto' : '⚪ Removido da Página'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showProductCertificateBanner !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showProductCertificateBanner: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-[#9CA3AF]">
+                    {siteConfig.showProductCertificateBanner !== false
+                      ? 'Este quadro está visível na página de detalhes da peça, permitindo aos clientes baixar o laudo em PDF.'
+                      : 'Este quadro foi desativado e não aparecerá para os clientes na página da peça.'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSiteConfig({
+                        ...siteConfig,
+                        showProductCertificateBanner: !(siteConfig.showProductCertificateBanner !== false),
+                      })
+                    }
+                    className="text-[11px] font-bold text-[#f2ca50] hover:underline shrink-0 ml-2 cursor-pointer"
+                  >
+                    {siteConfig.showProductCertificateBanner !== false ? 'Remover Janela' : 'Reativar Janela'}
+                  </button>
+                </div>
+
+                {siteConfig.showProductCertificateBanner !== false && (
+                  <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Título do Certificado:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productCertificateTitle ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productCertificateTitle: e.target.value })
+                          }
+                          placeholder="Ex: Certificado de Autenticidade Vitalício #COA-9801"
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Texto do Botão de Download:
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig.productCertificateBtnText ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productCertificateBtnText: e.target.value })
+                          }
+                          placeholder="Ex: Baixar Laudo Oficial (PDF)"
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                          Subtítulo / Descrição do Laudo Pericial:
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={siteConfig.productCertificateSubtitle ?? ''}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, productCertificateSubtitle: e.target.value })
+                          }
+                          placeholder="Ex: Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo."
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pré-visualização Fiel em Tempo Real */}
+                    <div className="pt-2 border-t border-[#282E3A]">
+                      <span className="text-[10px] text-[#9CA3AF] uppercase font-bold block mb-2">
+                        Pré-visualização em Tempo Real na Página da Peça:
+                      </span>
+                      <div className="bg-[#08090B] border border-[#282E3A] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded bg-[#12151B] border border-[#C59B27] flex items-center justify-center text-[#f2ca50] shrink-0">
+                            <span className="material-symbols-outlined text-2xl">verified</span>
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-[#F4F1EA] uppercase font-['Space_Grotesk']">
+                              {siteConfig.productCertificateTitle || 'Certificado de Autenticidade Vitalício #COA-9801'}
+                            </h4>
+                            <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                              {siteConfig.productCertificateSubtitle || 'Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="px-4 py-2 bg-[#1A1E26] border border-[#C59B27] text-[#f2ca50] text-xs font-['Space_Grotesk'] font-semibold rounded flex items-center gap-1.5 shrink-0 opacity-90 select-none">
+                          <span className="material-symbols-outlined text-base">download</span>
+                          <span>{siteConfig.productCertificateBtnText || 'Baixar Laudo Oficial (PDF)'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Botão de Salvar Rodapé */}
@@ -2026,10 +2164,16 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={!isUserAdmin}
-                className="px-6 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                className={`px-6 py-2.5 font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed ${
+                  saveConfigSuccess
+                    ? 'bg-[#10B981] text-[#08090B]'
+                    : 'bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B]'
+                }`}
               >
-                <span className="material-symbols-outlined text-sm">save</span>
-                Salvar Alterações dos Painéis
+                <span className="material-symbols-outlined text-sm">
+                  {saveConfigSuccess ? 'task_alt' : 'save'}
+                </span>
+                {saveConfigSuccess ? '✓ Alterações Salvas com Sucesso!' : 'Salvar Alterações dos Painéis'}
               </button>
             </div>
           </form>
@@ -2496,6 +2640,76 @@ export default function AdminPage() {
                     onChange={(e) => setSiteConfig({ ...siteConfig, catalogPageSubtitle: e.target.value })}
                     className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO 4.1: Certificado de Autenticidade & Laudo Oficial */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+              <div className="border-b border-[#282E3A] pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">verified</span>
+                  <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                    Certificado de Autenticidade &amp; Laudo Oficial (Página da Peça)
+                  </h3>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                    siteConfig.showProductCertificateBanner !== false
+                      ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                      : 'bg-[#282E3A] text-[#9CA3AF]'
+                  }`}
+                >
+                  {siteConfig.showProductCertificateBanner !== false ? '🟢 Ativo' : '⚪ Ocultado'}
+                </span>
+              </div>
+
+              <div className="space-y-4 text-xs font-['Space_Grotesk']">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Título do Certificado:
+                    </label>
+                    <input
+                      type="text"
+                      value={siteConfig.productCertificateTitle ?? ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, productCertificateTitle: e.target.value })
+                      }
+                      placeholder="Ex: Certificado de Autenticidade Vitalício #COA-9801"
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Texto do Botão de Download:
+                    </label>
+                    <input
+                      type="text"
+                      value={siteConfig.productCertificateBtnText ?? ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, productCertificateBtnText: e.target.value })
+                      }
+                      placeholder="Ex: Baixar Laudo Oficial (PDF)"
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Subtítulo / Descrição do Laudo Pericial:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={siteConfig.productCertificateSubtitle ?? ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, productCertificateSubtitle: e.target.value })
+                      }
+                      placeholder="Ex: Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo."
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

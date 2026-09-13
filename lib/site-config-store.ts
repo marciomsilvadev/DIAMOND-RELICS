@@ -32,6 +32,7 @@ export interface SiteConfig {
   showVitrineSection: boolean;
   showCoaSection: boolean;
   showBenefitsSection: boolean;
+  showProductCertificateBanner?: boolean;
 
   // ==========================================
   // Textos do Painel de Consulta de Certificado (COA)
@@ -87,6 +88,9 @@ export interface SiteConfig {
   // Página de Detalhes do Produto
   productPageBadge: string;
   productSecurityNotice: string;
+  productCertificateTitle?: string;
+  productCertificateSubtitle?: string;
+  productCertificateBtnText?: string;
 
   // Rótulos de Botões Globais
   btnBuyNow: string;
@@ -156,6 +160,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   showVitrineSection: true,
   showCoaSection: true,
   showBenefitsSection: true,
+  showProductCertificateBanner: true,
 
   // Textos do Painel de Consulta COA
   coaBadge: 'CONSULTA DE AUTENTICIDADE',
@@ -214,6 +219,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   productPageBadge: 'Item Histórico Genuíno • Acervo Oficial',
   productSecurityNotice:
     'Certificado de Autenticidade Vitalício • Laudo Forense Chancelado • Entrega Segura em Todo o Brasil',
+  productCertificateTitle: 'Certificado de Autenticidade Vitalício #COA-9801',
+  productCertificateSubtitle:
+    'Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.',
+  productCertificateBtnText: 'Baixar Laudo Oficial (PDF)',
 
   // Rótulos de Botões Globais
   btnBuyNow: 'Comprar Agora',
