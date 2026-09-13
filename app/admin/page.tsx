@@ -948,10 +948,16 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   disabled={!isUserAdmin}
-                  className="px-5 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                  className={`px-5 py-2 font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed ${
+                    saveConfigSuccess
+                      ? 'bg-[#10B981] text-[#08090B]'
+                      : 'bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B]'
+                  }`}
                 >
-                  <span className="material-symbols-outlined text-sm">save</span>
-                  Salvar Alterações
+                  <span className="material-symbols-outlined text-sm">
+                    {saveConfigSuccess ? 'task_alt' : 'save'}
+                  </span>
+                  {saveConfigSuccess ? 'Salvo com Sucesso!' : 'Salvar Alterações'}
                 </button>
               </div>
             </div>
@@ -1145,18 +1151,20 @@ export default function AdminPage() {
                         </div>
 
                         {/* Badge do Instagram conforme segunda imagem */}
-                        <div className="relative z-10 mt-2 flex items-center justify-center gap-2 px-3.5 py-1 rounded-full bg-[#12151B]/90 border border-[#282E3A]">
-                          <svg
-                            className="w-3.5 h-3.5 text-[#f2ca50] shrink-0"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                          </svg>
-                          <span className="text-[11px] font-['Space_Grotesk'] text-[#F4F1EA] font-medium">
-                            {siteConfig.heroCustomInstagramHandle || '@diamond.relics'}
-                          </span>
-                        </div>
+                        {siteConfig.heroCustomInstagramHandle?.trim() && (
+                          <div className="relative z-10 mt-2 flex items-center justify-center gap-2 px-3.5 py-1 rounded-full bg-[#12151B]/90 border border-[#282E3A]">
+                            <svg
+                              className="w-3.5 h-3.5 text-[#f2ca50] shrink-0"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                            <span className="text-[11px] font-['Space_Grotesk'] text-[#F4F1EA] font-medium">
+                              {siteConfig.heroCustomInstagramHandle}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Controles de Upload e Customização do Logotipo */}
@@ -1205,11 +1213,11 @@ export default function AdminPage() {
                           </label>
                           <input
                             type="text"
-                            value={siteConfig.heroCustomInstagramHandle || '@diamond.relics'}
+                            value={siteConfig.heroCustomInstagramHandle ?? ''}
                             onChange={(e) =>
                               setSiteConfig({ ...siteConfig, heroCustomInstagramHandle: e.target.value })
                             }
-                            placeholder="Ex: @diamond.relics"
+                            placeholder="Deixe em branco para não exibir ou digite ex: @diamond.relics"
                             className="w-full bg-[#12151B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
                           />
                         </div>
@@ -2801,6 +2809,24 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Mensagem de Sucesso visível diretamente no Rodapé do formulário */}
+            {saveConfigSuccess && (
+              <div className="bg-[#10B981]/20 border border-[#10B981] p-4 rounded-lg flex items-center justify-between text-[#10B981] animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl">check_circle</span>
+                  <span className="font-['Space_Grotesk'] text-sm font-bold">
+                    ✓ Alterações salvas com sucesso! Todas as configurações foram atualizadas e já estão ativas no site.
+                  </span>
+                </div>
+                <Link
+                  href="/"
+                  className="px-3 py-1 bg-[#10B981] text-[#08090B] font-bold text-xs rounded uppercase font-['Space_Grotesk']"
+                >
+                  Ver Home ao Vivo
+                </Link>
+              </div>
+            )}
+
             {/* Barra de Salvar no Rodapé */}
             <div className="flex justify-end gap-3 pt-2">
               <button
@@ -2814,10 +2840,16 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={!isUserAdmin}
-                className="px-6 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-2 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                className={`px-6 py-2.5 font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-2 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
+                  saveConfigSuccess
+                    ? 'bg-[#10B981] text-[#08090B]'
+                    : 'bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B]'
+                }`}
               >
-                <span className="material-symbols-outlined text-base">check_circle</span>
-                Salvar Todas as Alterações do Site
+                <span className="material-symbols-outlined text-base">
+                  {saveConfigSuccess ? 'task_alt' : 'check_circle'}
+                </span>
+                {saveConfigSuccess ? '✓ Alterações Salvas com Sucesso!' : 'Salvar Todas as Alterações do Site'}
               </button>
             </div>
           </form>
@@ -3336,6 +3368,19 @@ export default function AdminPage() {
         title={modalData.title}
         subtitle={modalData.subtitle}
       />
+
+      {/* Toast Flutuante de Confirmação de Salvamento */}
+      {saveConfigSuccess && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#10B981] text-[#08090B] px-5 py-3.5 rounded-xl shadow-[0_10px_35px_rgba(16,185,129,0.45)] flex items-center gap-3 font-['Space_Grotesk'] font-bold text-xs border border-[#10B981]/60 animate-fadeIn">
+          <span className="material-symbols-outlined text-2xl">task_alt</span>
+          <div>
+            <p className="leading-tight text-sm font-extrabold">Alterações Salvas com Sucesso!</p>
+            <p className="text-[11px] font-medium opacity-90 font-['Manrope'] mt-0.5">
+              Todas as configurações foram salvas e já estão ativas no site.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Rodapé Oficial */}
       <Footer />

@@ -14,6 +14,25 @@ export function Footer() {
     return () => window.removeEventListener('diamond_config_updated', handleUpdate);
   }, []);
 
+  const hasCol1Items =
+    Boolean(config.footerCol1Item1?.trim() ||
+    config.footerCol1Item2?.trim() ||
+    config.footerCol1Item3?.trim() ||
+    config.footerCol1Item4?.trim());
+
+  const hasCol2Items =
+    Boolean(config.footerCol2Item1?.trim() ||
+    config.footerCol2Item2?.trim() ||
+    config.footerCol2Item3?.trim() ||
+    config.footerCol2Item4?.trim() ||
+    config.footerCol2Item5?.trim());
+
+  const hasCol3Items =
+    Boolean(config.footerPaymentPix?.trim() ||
+    config.footerPaymentCard?.trim() ||
+    config.footerPaymentBoleto?.trim() ||
+    config.footerPaymentInsurance?.trim());
+
   return (
     <footer className="border-t border-[#282E3A] bg-[#08090B] text-[#9CA3AF] text-xs font-['Space_Grotesk'] mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -37,121 +56,169 @@ export function Footer() {
                 </span>
               </div>
             </div>
-            <p className="text-[#9CA3AF] font-['Manrope'] text-xs leading-relaxed max-w-sm">
-              {config.footerDescription}
-            </p>
+            {config.footerDescription?.trim() && (
+              <p className="text-[#9CA3AF] font-['Manrope'] text-xs leading-relaxed max-w-sm">
+                {config.footerDescription}
+              </p>
+            )}
             <div className="flex flex-col gap-1 text-[11px] text-[#E5C875]">
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                <span>WhatsApp / Concierge: {config.contactPhone}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[#9CA3AF]">
-                <span>E-mail: {config.contactEmail}</span>
-              </div>
+              {config.contactPhone?.trim() && (
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                  <span>WhatsApp / Concierge: {config.contactPhone}</span>
+                </div>
+              )}
+              {config.contactEmail?.trim() && (
+                <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                  <span>E-mail: {config.contactEmail}</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs">
             {/* Coluna 1: Segurança & Garantia */}
-            <div>
-              <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
-                {config.footerCol1Title || 'Segurança & Garantia'}
-              </span>
-              <ul className="space-y-1.5 text-[#9CA3AF]">
-                <li>
-                  <Link href="/catalog" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol1Item1 || 'Certificado de Autenticidade'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol1Item2 || 'Envio com Seguro Especial'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol1Item3 || 'Garantia Vitalícia de Origem'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol1Item4 || 'Política de Devolução (CDC)'}
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            {(config.footerCol1Title?.trim() || hasCol1Items) && (
+              <div>
+                {config.footerCol1Title?.trim() && (
+                  <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
+                    {config.footerCol1Title}
+                  </span>
+                )}
+                <ul className="space-y-1.5 text-[#9CA3AF]">
+                  {config.footerCol1Item1?.trim() && (
+                    <li>
+                      <Link href="/catalog" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol1Item1}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol1Item2?.trim() && (
+                    <li>
+                      <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol1Item2}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol1Item3?.trim() && (
+                    <li>
+                      <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol1Item3}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol1Item4?.trim() && (
+                    <li>
+                      <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol1Item4}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
 
             {/* Coluna 2: Navegação da Loja */}
-            <div>
-              <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
-                {config.footerCol2Title || 'Navegação da Loja'}
-              </span>
-              <ul className="space-y-1.5 text-[#9CA3AF]">
-                <li>
-                  <Link href="/" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol2Item1 || 'Página Inicial'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/catalog" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol2Item2 || 'Todos os Produtos'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/product" className="hover:text-[#E5C875] transition-colors text-[#E5C875]">
-                    {config.footerCol2Item3 || 'Camisa Pelé 1970'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol2Item4 || 'Carrinho de Compras'}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/admin" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol2Item5 || 'Painel do Administrador'}
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            {(config.footerCol2Title?.trim() || hasCol2Items) && (
+              <div>
+                {config.footerCol2Title?.trim() && (
+                  <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
+                    {config.footerCol2Title}
+                  </span>
+                )}
+                <ul className="space-y-1.5 text-[#9CA3AF]">
+                  {config.footerCol2Item1?.trim() && (
+                    <li>
+                      <Link href="/" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol2Item1}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol2Item2?.trim() && (
+                    <li>
+                      <Link href="/catalog" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol2Item2}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol2Item3?.trim() && (
+                    <li>
+                      <Link href="/product" className="hover:text-[#E5C875] transition-colors text-[#E5C875]">
+                        {config.footerCol2Item3}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol2Item4?.trim() && (
+                    <li>
+                      <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol2Item4}
+                      </Link>
+                    </li>
+                  )}
+                  {config.footerCol2Item5?.trim() && (
+                    <li>
+                      <Link href="/admin" className="hover:text-[#E5C875] transition-colors">
+                        {config.footerCol2Item5}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
 
             {/* Coluna 3: Formas de Pagamento */}
-            <div className="col-span-2 sm:col-span-1">
-              <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
-                {config.footerCol3Title || 'Formas de Pagamento'}
-              </span>
-              <ul className="space-y-1.5 text-[#9CA3AF]">
-                <li className="text-[#10B981] font-semibold">
-                  {config.footerPaymentPix || 'PIX (5% de desconto à vista)'}
-                </li>
-                <li className="text-[#E5C875]">
-                  {config.footerPaymentCard || 'Cartão em até 12x sem juros'}
-                </li>
-                <li className="text-[#E5C875]">
-                  {config.footerPaymentBoleto || 'Boleto Bancário / TED'}
-                </li>
-                <li className="text-[#9CA3AF] flex items-center gap-1 mt-2">
-                  <span className="material-symbols-outlined text-xs text-[#10B981]">verified</span>
-                  {config.footerPaymentInsurance || "Seguro Lloyd's até R$ 50M"}
-                </li>
-              </ul>
-            </div>
+            {(config.footerCol3Title?.trim() || hasCol3Items) && (
+              <div className="col-span-2 sm:col-span-1">
+                {config.footerCol3Title?.trim() && (
+                  <span className="text-[#F4F1EA] font-semibold block mb-2 uppercase tracking-wider">
+                    {config.footerCol3Title}
+                  </span>
+                )}
+                <ul className="space-y-1.5 text-[#9CA3AF]">
+                  {config.footerPaymentPix?.trim() && (
+                    <li className="text-[#10B981] font-semibold">
+                      {config.footerPaymentPix}
+                    </li>
+                  )}
+                  {config.footerPaymentCard?.trim() && (
+                    <li className="text-[#E5C875]">
+                      {config.footerPaymentCard}
+                    </li>
+                  )}
+                  {config.footerPaymentBoleto?.trim() && (
+                    <li className="text-[#E5C875]">
+                      {config.footerPaymentBoleto}
+                    </li>
+                  )}
+                  {config.footerPaymentInsurance?.trim() && (
+                    <li className="text-[#9CA3AF] flex items-center gap-1 mt-2">
+                      <span className="material-symbols-outlined text-xs text-[#10B981]">verified</span>
+                      {config.footerPaymentInsurance}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-4 gap-3 text-[#9CA3AF] text-[11px]">
-          <div className="flex items-center gap-2">
-            <span
-              className="material-symbols-outlined text-[#C59B27] text-sm"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              verified_user
-            </span>
-            <span>{config.footerCopyright}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[#E5C875]">{config.footerSecuritySeal || 'Site 100% Seguro com Certificado SSL'}</span>
-          </div>
+          {config.footerCopyright?.trim() && (
+            <div className="flex items-center gap-2">
+              <span
+                className="material-symbols-outlined text-[#C59B27] text-sm"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                verified_user
+              </span>
+              <span>{config.footerCopyright}</span>
+            </div>
+          )}
+          {config.footerSecuritySeal?.trim() && (
+            <div className="flex items-center gap-4">
+              <span className="text-[#E5C875]">{config.footerSecuritySeal}</span>
+            </div>
+          )}
         </div>
       </div>
     </footer>
