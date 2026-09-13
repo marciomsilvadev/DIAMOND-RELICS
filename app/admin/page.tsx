@@ -968,7 +968,7 @@ export default function AdminPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
-                          Tipo de Exibição no Destaque da Home (Hero)
+                          Tipo de Exibição no Destaque da Home
                         </h3>
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase font-['Space_Grotesk'] bg-[#f2ca50]/20 text-[#f2ca50] border border-[#f2ca50]/30">
                           Quadro Principal

@@ -271,8 +271,8 @@ export function ProductGalleryEditor({ mediaList, onChange }: ProductGalleryEdit
               onChange={(e) => setUrlType(e.target.value as any)}
               className="bg-[#08090B] border border-[#282E3A] text-[#F4F1EA] px-2 py-1.5 rounded text-xs focus:outline-none focus:border-[#f2ca50]"
             >
-              <option value="image">Foto (Imagem)</option>
-              <option value="video">Vídeo (MP4/WebM)</option>
+              <option value="image">Foto</option>
+              <option value="video">Vídeo</option>
             </select>
             <input
               type="url"
