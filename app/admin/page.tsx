@@ -10,14 +10,18 @@ import { RelicItem, CATALOG_RELICS, MediaItem } from '@/lib/relics-data';
 import { ProductGalleryEditor } from '@/components/ProductGalleryEditor';
 import {
   getStoredProducts,
+  saveStoredProducts,
   addStoredProduct,
   updateStoredProduct,
   removeStoredProduct,
   resetStoredProducts,
+  syncProductsFromSupabase,
   getStoredOrders,
   clearStoredOrders,
   OrderItem,
 } from '@/lib/products-store';
+import { isSupabaseConfigured } from '@/lib/supabase';
+
 import {
   getStoredSiteConfig,
   saveStoredSiteConfig,
@@ -78,11 +82,61 @@ export default function AdminPage() {
     subtitle: '',
   });
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const jsonInputRef = useState<HTMLInputElement | null>(null);
+
+  const handleExportBackup = () => {
+    const currentProducts = getStoredProducts();
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentProducts, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `diamond-relics-catalogo-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (Array.isArray(parsed)) {
+          saveStoredProducts(parsed);
+          setProducts(parsed);
+          alert(`Backup restaurado com sucesso! ${parsed.length} produtos carregados.`);
+        } else {
+          alert('Arquivo de backup inválido.');
+        }
+      } catch (err) {
+        alert('Erro ao processar arquivo JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleCloudSync = async () => {
+    setIsSyncing(true);
+    try {
+      const updated = await syncProductsFromSupabase();
+      setProducts(updated);
+      alert('Sincronização com o Supabase concluída com sucesso!');
+    } catch (err: any) {
+      alert('Erro na sincronização: ' + (err.message || 'Falha de conexão'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const loadData = () => {
     setProducts(getStoredProducts());
     setOrders(getStoredOrders());
     setSiteConfig(getStoredSiteConfig());
   };
+
 
   useEffect(() => {
     setSession(getCurrentSession());
@@ -479,6 +533,55 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Indicador de Status do Banco em Nuvem (Supabase) */}
+            {isSupabaseConfigured() ? (
+              <button
+                type="button"
+                onClick={handleCloudSync}
+                disabled={isSyncing}
+                title="Clique para forçar sincronização com o banco de dados na nuvem"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/50 text-emerald-400 text-xs font-['Space_Grotesk'] font-bold transition-colors cursor-pointer"
+              >
+                <span className={`w-2 h-2 rounded-full bg-emerald-400 ${isSyncing ? 'animate-spin' : 'animate-pulse'}`}></span>
+                {isSyncing ? 'Sincronizando...' : 'Nuvem Supabase Ativa'}
+              </button>
+            ) : (
+              <div
+                title="Armazenamento local do navegador ativo. Configure o Supabase para sincronização em nuvem."
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-950/40 border border-amber-500/40 text-amber-300 text-xs font-['Space_Grotesk'] font-bold"
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                Modo Local (Offline)
+              </div>
+            )}
+
+            {/* Ferramentas de Backup Seguro do Catálogo */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                title="Baixar arquivo JSON com todas as peças e fotos cadastradas"
+                className="px-3 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm text-[#f2ca50]">download</span>
+                Exportar Backup
+              </button>
+
+              <label
+                title="Importar catálogo salvo em arquivo JSON"
+                className="px-3 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm text-[#f2ca50]">upload</span>
+                Importar Backup
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportBackup}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             <button
               onClick={() => setShowAddModal(true)}
               className="px-4 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
@@ -486,6 +589,7 @@ export default function AdminPage() {
               <span className="material-symbols-outlined text-base">add_circle</span>
               Adicionar Novo Produto
             </button>
+
 
             <Link
               href="/"

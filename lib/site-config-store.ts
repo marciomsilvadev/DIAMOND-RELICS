@@ -1,5 +1,8 @@
 'use client';
 
+import { getSupabase, isSupabaseConfigured, safeExecute } from './supabase';
+
+
 export interface SiteConfig {
   storeName: string;
   storeBadge: string;
@@ -307,6 +310,57 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 
 const CONFIG_STORAGE_KEY = 'diamond_relics_site_config_v1';
 
+/**
+ * Sincroniza as configurações do site com o Supabase
+ */
+export async function syncSiteConfigFromSupabase(): Promise<SiteConfig> {
+  const supabase = getSupabase();
+  if (!supabase) return getStoredSiteConfig();
+
+  try {
+    const { data, error } = await supabase
+      .from('site_config')
+      .select('config')
+      .eq('id', 'current_config')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Aviso ao sincronizar site_config com Supabase:', error.message);
+      return getStoredSiteConfig();
+    }
+
+    if (data && data.config) {
+      const merged = { ...DEFAULT_SITE_CONFIG, ...data.config };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(merged));
+        window.dispatchEvent(new Event('diamond_config_updated'));
+      }
+      return merged;
+    } else {
+      // Se não existir na nuvem, salvar o atual
+      const current = getStoredSiteConfig();
+      await supabase.from('site_config').upsert({
+        id: 'current_config',
+        config: current,
+        updated_at: new Date().toISOString(),
+      });
+    }
+    return getStoredSiteConfig();
+  } catch (err) {
+    console.error('Erro na sincronização de site_config:', err);
+    return getStoredSiteConfig();
+  }
+}
+
+// Inicia sincronização automática no browser
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    if (isSupabaseConfigured()) {
+      syncSiteConfigFromSupabase();
+    }
+  }, 150);
+}
+
 export function getStoredSiteConfig(): SiteConfig {
   if (typeof window === 'undefined') return DEFAULT_SITE_CONFIG;
   try {
@@ -316,7 +370,7 @@ export function getStoredSiteConfig(): SiteConfig {
       return DEFAULT_SITE_CONFIG;
     }
 
-    // Auto-sanitização de cache antigo (remove qualquer vestígio de escolta armada/blindada em navegadores antigos)
+    // Auto-sanitização de cache antigo
     if (raw.includes('Blindada') || raw.includes('blindada') || raw.includes('Armada') || raw.includes('armada')) {
       raw = raw
         .replace(/Entrega Blindada Segurada/gi, 'Entrega Segura e Segurada')
@@ -340,9 +394,21 @@ export function saveStoredSiteConfig(config: SiteConfig): void {
   try {
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
     window.dispatchEvent(new Event('diamond_config_updated'));
+
+    const supabase = getSupabase();
+    if (supabase) {
+      safeExecute(
+        supabase.from('site_config').upsert({
+          id: 'current_config',
+          config,
+          updated_at: new Date().toISOString(),
+        })
+      );
+    }
   } catch (err) {
     console.error('Erro ao salvar configurações do site:', err);
   }
+
 }
 
 export function resetSiteConfig(): SiteConfig {
@@ -352,3 +418,4 @@ export function resetSiteConfig(): SiteConfig {
   }
   return DEFAULT_SITE_CONFIG;
 }
+

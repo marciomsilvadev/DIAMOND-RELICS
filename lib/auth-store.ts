@@ -1,5 +1,7 @@
 'use client';
 
+import { getSupabase, isSupabaseConfigured } from './supabase';
+
 export type UserRole = 'admin' | 'operator';
 
 export interface AuthUser {
@@ -26,6 +28,17 @@ const SESSION_STORAGE_KEY = 'diamond_relics_session_v1';
 
 export const DEFAULT_USERS: AuthUser[] = [
   {
+    id: 'usr-admin-marcio',
+    name: 'Márcio Silva (Administrador)',
+    email: 'marcio.msrs@hotmail.com',
+    password: 'admin123',
+    role: 'admin',
+    department: 'Diretoria Executiva',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+    active: true,
+    createdAt: '2025-01-01T10:00:00.000Z',
+  },
+  {
     id: 'usr-admin-master',
     name: 'Roberto Silveira (Curador Chefe)',
     email: 'admin@diamondrelics.com',
@@ -48,6 +61,7 @@ export const DEFAULT_USERS: AuthUser[] = [
     createdAt: '2025-01-15T14:30:00.000Z',
   },
 ];
+
 
 /**
  * Obtém a lista de todos os usuários cadastrados

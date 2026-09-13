@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { MediaItem } from '@/lib/relics-data';
 import { readFileAsMediaItem, createMediaFromUrl } from '@/lib/media-helper';
+import { isSupabaseConfigured, uploadMediaToSupabase } from '@/lib/supabase';
 
 interface ProductGalleryEditorProps {
   mediaList: MediaItem[];
@@ -36,6 +37,18 @@ export function ProductGalleryEditor({ mediaList, onChange }: ProductGalleryEdit
       setProgressText(`Otimizando ${i + 1} de ${files.length}: ${file.name}...`);
       try {
         const item = await readFileAsMediaItem(file);
+
+        // Se o Supabase estiver configurado, envia a foto diretamente para o Bucket na nuvem
+        if (isSupabaseConfigured()) {
+          setProgressText(`Enviando ${file.name} para a nuvem Supabase...`);
+          const { url: cloudUrl, error: uploadErr } = await uploadMediaToSupabase(file, file.name);
+          if (cloudUrl) {
+            item.url = cloudUrl;
+          } else if (uploadErr) {
+            console.warn('Falha no upload para Supabase Storage, mantendo versão local:', uploadErr);
+          }
+        }
+
         // Se for o primeiro item adicionado à galeria e não houver itens, é a foto principal
         if (mediaList.length === 0 && newItems.length === 0) {
           item.isCover = true;
