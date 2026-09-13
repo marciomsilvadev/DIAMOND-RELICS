@@ -7,6 +7,19 @@ export interface SiteConfig {
   contactPhone: string;
   contactEmail: string;
 
+  // Logotipo da Empresa
+  customLogoUrl?: string;
+
+  // Modo de Exibição do Card em Destaque (Hero)
+  heroDisplayMode?: 'product' | 'logo' | 'custom_image';
+  heroSelectedProductId?: string;
+  heroCustomImageUrl?: string;
+  heroCustomTag?: string;
+  heroCustomTitle?: string;
+  heroCustomSubtitle?: string;
+  heroCustomBtnText?: string;
+  heroCustomBtnLink?: string;
+
   // ==========================================
   // Controle de Visibilidade dos Painéis (Janelas)
   // ==========================================
@@ -117,6 +130,20 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     'Loja Oficial de Relíquias Esportivas Autênticas • Pagamento 100% em Reais • Entrega Segura e Segurada',
   contactPhone: '+55 (11) 99842-1970',
   contactEmail: 'concierge@diamondrelics.com.br',
+
+  // Logotipo da Empresa
+  customLogoUrl: '/diamond-relics-logo.png',
+
+  // Modo de Exibição do Card em Destaque (Hero)
+  heroDisplayMode: 'product',
+  heroSelectedProductId: '',
+  heroCustomImageUrl: '',
+  heroCustomTag: 'DESTAQUE EXCLUSIVO',
+  heroCustomTitle: 'Diamond Relics • Acervo Oficial',
+  heroCustomSubtitle:
+    'Relíquias esportivas originais com laudos forenses e certificado vitalício de procedência.',
+  heroCustomBtnText: 'Explorar Acervo',
+  heroCustomBtnLink: '/catalog',
 
   // Visibilidade Padrão dos Painéis
   showTopRelayBar: true,

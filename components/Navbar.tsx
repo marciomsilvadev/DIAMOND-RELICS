@@ -42,8 +42,8 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
           className="text-lg md:text-xl font-['Playfair_Display'] text-[#f2ca50] tracking-widest uppercase flex items-center gap-2.5 sm:gap-3.5 hover:text-[#E5C875] transition-colors duration-150 group"
         >
           <img
-            src="/diamond-relics-logo.png"
-            alt="Diamond Relics"
+            src={config.customLogoUrl || '/diamond-relics-logo.png'}
+            alt={config.storeName || 'Diamond Relics'}
             className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_14px_rgba(242,202,80,0.35)] group-hover:scale-105 transition-transform shrink-0"
           />
           <div className="flex flex-col">

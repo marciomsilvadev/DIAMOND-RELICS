@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { login, AuthSession } from '@/lib/auth-store';
+import { getStoredSiteConfig } from '@/lib/site-config-store';
 
 interface AdminLoginFormProps {
   onLoginSuccess: (session: AuthSession) => void;
@@ -14,6 +15,14 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('/diamond-relics-logo.png');
+
+  useEffect(() => {
+    const cfg = getStoredSiteConfig();
+    if (cfg.customLogoUrl) {
+      setLogoUrl(cfg.customLogoUrl);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +75,7 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
         <div className="text-center space-y-3">
           <div className="flex justify-center mb-1">
             <img
-              src="/diamond-relics-logo.png"
+              src={logoUrl || '/diamond-relics-logo.png'}
               alt="Diamond Relics"
               className="h-20 sm:h-24 w-auto object-contain drop-shadow-[0_0_25px_rgba(242,202,80,0.35)]"
             />

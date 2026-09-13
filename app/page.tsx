@@ -320,8 +320,15 @@ export default function HomePage() {
 
   const [selectedHeroProdIndex, setSelectedHeroProdIndex] = useState(0);
 
+  // Se o administrador selecionou um produto fixo no painel, respeitar a escolha
+  const adminChosenProduct = config.heroSelectedProductId
+    ? products.find((p) => p.id === config.heroSelectedProductId)
+    : null;
+
   const heroProduct =
-    heroFeaturedProducts[selectedHeroProdIndex % heroFeaturedProducts.length] || heroFeaturedProducts[0];
+    adminChosenProduct ||
+    heroFeaturedProducts[selectedHeroProdIndex % heroFeaturedProducts.length] ||
+    heroFeaturedProducts[0];
 
   // Reúne todas as imagens da peça em destaque ativa
   const allHeroImages: string[] = [];
@@ -409,7 +416,13 @@ export default function HomePage() {
                   </Link>
 
                   <Link
-                    href={`/product?id=${heroProduct?.id || 'pel-1970'}`}
+                    href={
+                      config.heroDisplayMode === 'custom_image'
+                        ? config.heroCustomBtnLink || '/catalog'
+                        : config.heroDisplayMode === 'logo'
+                        ? '/catalog'
+                        : `/product?id=${heroProduct?.id || 'pel-1970'}`
+                    }
                     className="px-6 py-3.5 bg-[#12151B] hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded-lg transition-all flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-lg text-[#f2ca50]">visibility</span>
@@ -447,8 +460,141 @@ export default function HomePage() {
                 )}
               </div>
 
-            {/* Hero Product Highlight Card */}
-            {heroProduct && (
+            {/* HERO HIGHLIGHT CARD (Modos: Produto do Catálogo | Logotipo da Empresa | Banner Personalizado) */}
+            {config.heroDisplayMode === 'logo' ? (
+              <div className="lg:col-span-5">
+                <div className="bg-[#12151B] border border-[#C59B27]/50 rounded-xl p-6 shadow-2xl relative overflow-hidden group hover:border-[#f2ca50] transition-all flex flex-col justify-between">
+                  {/* Badge Superior */}
+                  <div className="flex justify-between items-center mb-4 text-xs font-['Space_Grotesk']">
+                    <span className="px-3 py-1 bg-[#08090B] border border-[#f2ca50] text-[#f2ca50] font-bold rounded uppercase flex items-center gap-1.5 text-[10px] tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50] animate-pulse"></span>
+                      {config.heroCustomTag || 'SELO DE AUTENTICIDADE • OFICIAL'}
+                    </span>
+                    <span className="text-[#10B981] text-[11px] font-semibold flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">verified</span>
+                      Acervo Chancelado
+                    </span>
+                  </div>
+
+                  {/* Área Central de Destaque com o Logotipo Oficial */}
+                  <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#07090c] border border-[#282E3A]/80 mb-5 flex flex-col items-center justify-center p-6 text-center select-none group/logo">
+                    {/* Glow Dourado de Luxo */}
+                    <div className="absolute inset-0 bg-[#f2ca50]/5 blur-2xl pointer-events-none group-hover/logo:bg-[#f2ca50]/10 transition-colors" />
+                    <div className="relative z-10 space-y-4 max-w-xs">
+                      <img
+                        src={config.customLogoUrl || '/diamond-relics-logo.png'}
+                        alt={config.storeName || 'Diamond Relics'}
+                        className="h-28 sm:h-32 w-auto mx-auto object-contain drop-shadow-[0_0_25px_rgba(242,202,80,0.4)] transition-transform group-hover/logo:scale-105 duration-300"
+                      />
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-['Space_Grotesk'] tracking-[0.25em] text-[#C59B27] uppercase font-bold block">
+                          {config.storeBadge || 'LOJA OFICIAL'}
+                        </span>
+                        <p className="text-xs text-[#9CA3AF] font-['Manrope'] leading-relaxed">
+                          {config.heroCustomSubtitle || 'Memorabilia Esportiva com Certificação Forense & Garantia Notarial Vitalícia.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rodapé do Card com Garantias e Botão */}
+                  <div className="space-y-4 pt-1">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
+                      <div className="p-2 bg-[#08090B] border border-[#282E3A] rounded flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-[#10B981]">shield</span>
+                        <span>Seguro Lloyd&apos;s Ativo</span>
+                      </div>
+                      <div className="p-2 bg-[#08090B] border border-[#282E3A] rounded flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">biotech</span>
+                        <span>Laudos 100% Originais</span>
+                      </div>
+                    </div>
+
+                    <Link
+                      href="/catalog"
+                      className="w-full py-3.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(242,202,80,0.2)]"
+                    >
+                      <span>{config.heroCustomBtnText || 'Explorar Todo o Acervo'}</span>
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : config.heroDisplayMode === 'custom_image' ? (
+              <div className="lg:col-span-5">
+                <div className="bg-[#12151B] border border-[#C59B27]/50 rounded-xl p-5 shadow-2xl relative overflow-hidden group hover:border-[#f2ca50] transition-all">
+                  {/* Badge Superior */}
+                  <div className="flex justify-between items-center mb-3 text-xs font-['Space_Grotesk']">
+                    <span className="px-2.5 py-0.5 bg-[#08090B] border border-[#f2ca50] text-[#f2ca50] font-bold rounded uppercase flex items-center gap-1 text-[10px]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50] animate-pulse"></span>
+                      {config.heroCustomTag || 'DESTAQUE EXCLUSIVO'}
+                    </span>
+                    <span className="text-[#9CA3AF] text-[11px]">Destaque Personalizado</span>
+                  </div>
+
+                  {/* Imagem Auto-Ajustada sem Cortes */}
+                  <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#07090c] border border-[#282E3A]/80 mb-4 flex items-center justify-center p-2.5 group/customimg select-none">
+                    {config.heroCustomImageUrl ? (
+                      <>
+                        <div
+                          className="absolute inset-0 bg-cover bg-center opacity-30 blur-xl scale-125 pointer-events-none transition-all duration-700"
+                          style={{ backgroundImage: `url(${config.heroCustomImageUrl})` }}
+                        />
+                        <div className="absolute inset-0 bg-[#08090B]/60 pointer-events-none" />
+                        <img
+                          src={config.heroCustomImageUrl}
+                          alt={config.heroCustomTitle || 'Destaque'}
+                          className="relative z-10 max-h-full max-w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.9)]"
+                        />
+                        <button
+                          onClick={() =>
+                            openImage(
+                              config.heroCustomImageUrl || '',
+                              config.heroCustomTitle || 'Destaque',
+                              config.heroCustomSubtitle
+                            )
+                          }
+                          className="absolute top-3 right-3 z-20 p-1.5 bg-[#08090B]/85 hover:bg-[#f2ca50] hover:text-[#08090B] text-[#F4F1EA] rounded-full border border-[#282E3A] transition-colors shadow-md backdrop-blur-sm"
+                          title="Ampliar foto"
+                        >
+                          <span className="material-symbols-outlined text-base">zoom_in</span>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-center p-6 space-y-2 text-[#9CA3AF]">
+                        <span className="material-symbols-outlined text-4xl text-[#f2ca50]">add_photo_alternate</span>
+                        <p className="text-xs">Nenhuma imagem personalizada configurada ainda.</p>
+                        <p className="text-[10px] text-[#6B7280]">Defina uma imagem no Painel do Administrador.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Textos e Botão */}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
+                        {config.heroCustomTitle || 'Diamond Relics • Acervo Oficial'}
+                      </h3>
+                      {config.heroCustomSubtitle && (
+                        <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-1 leading-relaxed">
+                          {config.heroCustomSubtitle}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2">
+                      <Link
+                        href={config.heroCustomBtnLink || '/catalog'}
+                        className="w-full py-3 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Space_Grotesk'] uppercase font-bold rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <span>{config.heroCustomBtnText || 'Ver Detalhes'}</span>
+                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : heroProduct ? (
               <div className="lg:col-span-5">
                 <div className="bg-[#12151B] border border-[#C59B27]/50 rounded-xl p-5 shadow-2xl relative overflow-hidden group hover:border-[#f2ca50] transition-all">
                   {/* Seletor de Destaque caso haja mais de um produto destacado */}
@@ -646,7 +792,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
