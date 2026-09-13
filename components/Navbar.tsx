@@ -66,7 +66,7 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
           </Link>
           <span className="text-[#9CA3AF] flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50]"></span>
-            Envio Seguro com Escolta Blindada
+            Envio Seguro Especializado
           </span>
         </nav>
       </div>

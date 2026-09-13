@@ -65,7 +65,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link href="/checkout" className="hover:text-[#E5C875] transition-colors">
-                    {config.footerCol1Item2 || 'Envio com Transporte Blindado'}
+                    {config.footerCol1Item2 || 'Envio com Seguro Especial'}
                   </Link>
                 </li>
                 <li>

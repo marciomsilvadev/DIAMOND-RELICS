@@ -74,7 +74,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   storeName: 'Diamond Relics',
   storeBadge: 'LOJA OFICIAL',
   topBannerText:
-    'Loja Oficial de Relíquias Esportivas Autênticas • Pagamento 100% em Reais • Entrega Blindada Segurada',
+    'Loja Oficial de Relíquias Esportivas Autênticas • Pagamento 100% em Reais • Entrega Segura e Segurada',
   contactPhone: '+55 (11) 99842-1970',
   contactEmail: 'concierge@diamondrelics.com.br',
 
@@ -89,7 +89,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   heroTagline: 'A MAIOR LOJA DE MEMORABILIA ESPORTIVA DO BRASIL',
   heroTitle: 'Relíquias Esportivas Originais dos Maiores Ícones do Mundo',
   heroSubtitle:
-    'Comercializamos peças históricas de colecionador: camisas autênticas usadas em finais de Copas, capacetes genuínos de Ayrton Senna e artigos lendários. Todas com laudo forense pericial, nota fiscal, certificado vitalício e transporte com escolta armada para todo o Brasil.',
+    'Comercializamos peças históricas de colecionador: camisas autênticas usadas em finais de Copas, capacetes genuínos de Ayrton Senna e artigos lendários. Todas com laudo forense pericial, nota fiscal, certificado vitalício e transporte seguro especializado para todo o Brasil.',
   heroBtnPrimary: 'Explorar Catálogo de Produtos',
   heroBtnSecondary: 'Ver Peça em Destaque',
 
@@ -101,12 +101,12 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   // Página de Catálogo
   catalogPageTitle: 'Catálogo de Relíquias Esportivas',
   catalogPageSubtitle:
-    'Peças históricas originais dos maiores atletas do mundo com laudos forenses, certificado vitalício de autenticidade e entrega segura blindada para todo o Brasil.',
+    'Peças históricas originais dos maiores atletas do mundo com laudos forenses, certificado vitalício de autenticidade e entrega especial segurada para todo o Brasil.',
 
   // Página de Detalhes do Produto
   productPageBadge: 'Item Histórico Genuíno • Acervo Oficial',
   productSecurityNotice:
-    'Certificado de Autenticidade Vitalício • Laudo Forense Chancelado • Entrega Blindada em Todo o Brasil',
+    'Certificado de Autenticidade Vitalício • Laudo Forense Chancelado • Entrega Segura em Todo o Brasil',
 
   // Rótulos de Botões Globais
   btnBuyNow: 'Comprar Agora',
@@ -116,14 +116,14 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 
   // Rodapé & Institucional
   footerDescription:
-    'A mais prestigiada loja de memorabilia e relíquias esportivas originais do Brasil. Comercializamos itens autênticos com laudos forenses, certificado de autenticidade vitalício e entrega blindada segurada.',
+    'A mais prestigiada loja de memorabilia e relíquias esportivas originais do Brasil. Comercializamos itens autênticos com laudos forenses, certificado de autenticidade vitalício e entrega especial segurada.',
   footerCopyright:
     '© 2024 Diamond Relics Brasil Ltda. CNPJ: 48.912.840/0001-92. Todos os direitos reservados. Todos os preços em Reais (R$).',
 
   // Rodapé - Coluna 1: Segurança & Garantia
   footerCol1Title: 'Segurança & Garantia',
   footerCol1Item1: 'Certificado de Autenticidade',
-  footerCol1Item2: 'Envio com Transporte Blindado',
+  footerCol1Item2: 'Envio com Seguro Especial',
   footerCol1Item3: 'Garantia Vitalícia de Origem',
   footerCol1Item4: 'Política de Devolução (CDC)',
 

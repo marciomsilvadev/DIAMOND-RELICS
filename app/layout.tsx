@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
-  description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
+  description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega especial segurada.',
   icons: {
     icon: [
       { url: '/favicon.png', type: 'image/png' },
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
-    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
+    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega especial segurada.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
-    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
+    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega especial segurada.',
   },
 };
 

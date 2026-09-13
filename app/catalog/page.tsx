@@ -148,7 +148,7 @@ export default function CatalogPage() {
               </h1>
               <p className="text-xs sm:text-sm font-['Manrope'] text-[#9CA3AF] mt-2 max-w-2xl leading-relaxed">
                 {config.catalogPageSubtitle ||
-                  'Peças históricas originais dos maiores atletas do mundo com laudos forenses, certificado vitalício de autenticidade e entrega segura blindada para todo o Brasil.'}
+                  'Peças históricas originais dos maiores atletas do mundo com laudos forenses, certificado vitalício de autenticidade e entrega especial segurada para todo o Brasil.'}
               </p>
             </div>
 
@@ -169,7 +169,7 @@ export default function CatalogPage() {
                 <span className="material-symbols-outlined text-[#10B981] text-xl">local_shipping</span>
                 <div>
                   <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
-                    Frete Blindado
+                    Envio Especial Segurado
                   </span>
                   <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold">
                     Seguro 100% Incluso

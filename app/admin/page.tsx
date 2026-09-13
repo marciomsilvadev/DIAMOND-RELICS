@@ -145,7 +145,7 @@ export default function AdminPage() {
       category: newCategory.trim() || `${newSport.toUpperCase()} • Edição Histórica`,
       description:
         newDescription.trim() ||
-        'Item genuíno autêntico com certificado de autenticidade vitalício e entrega com escolta blindada.',
+        'Item genuíno autêntico com certificado de autenticidade vitalício e entrega segura especializada.',
       year: Number(newYear) || 1980,
       grade: newGrade.trim() || 'Grau COA 9.8 Museu',
       priceBRL: price,
@@ -155,7 +155,7 @@ export default function AdminPage() {
       statusLabel: 'Peça Única • Disponível',
       stockCount: 1,
       custodian: 'Cofre São Paulo',
-      custodianFacility: 'Câmara Blindada Climatizada',
+      custodianFacility: 'Câmara Climatizada de Segurança',
       insurancePolicy: "Apólice Lloyd's of London (Cobertura 100%)",
       sha256Hash: `0x${Math.random().toString(16).substring(2)}${Math.random().toString(16).substring(2)}`,
       imageUrl: coverUrl,

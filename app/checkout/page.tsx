@@ -87,7 +87,7 @@ export default function CheckoutPage() {
         status:
           paymentMethod === 'pix'
             ? 'Aguardando Pagamento PIX'
-            : 'Pagamento Aprovado • Em Transporte Blindado',
+            : 'Pagamento Aprovado • Em Transporte Seguro Especial',
         statusColor:
           paymentMethod === 'pix'
             ? 'text-[#f2ca50] bg-[#f2ca50]/10 border-[#f2ca50]/30'
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
                   2
                 </span>
                 <h2 className="text-sm font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wide">
-                  Endereço de Entrega Segura (Escolta Blindada)
+                  Endereço de Entrega Segura (Seguro Total)
                 </h2>
               </div>
 
@@ -326,7 +326,7 @@ export default function CheckoutPage() {
 
                 <div className="sm:col-span-3 bg-[#08090B] p-3 rounded border border-[#282E3A] flex items-center gap-2 text-xs font-['Space_Grotesk'] text-[#10B981]">
                   <span className="material-symbols-outlined text-base">verified</span>
-                  <span>Frete Grátis com Transporte Blindado Brink&apos;s e Seguro Lloyd&apos;s até R$ 50.000.000,00</span>
+                  <span>Frete Grátis com Transporte Especializado e Seguro Lloyd&apos;s até R$ 50.000.000,00</span>
                 </div>
               </div>
             </div>
@@ -542,7 +542,7 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex justify-between text-[#9CA3AF]">
-                  <span>Frete com Escolta Armada:</span>
+                  <span>Frete com Seguro Especial:</span>
                   <span className="text-[#10B981] font-semibold">Grátis (Cortesia)</span>
                 </div>
 
@@ -575,7 +575,7 @@ export default function CheckoutPage() {
                   className="rounded border-[#282E3A] bg-[#08090B] text-[#f2ca50] focus:ring-0 mt-0.5"
                 />
                 <span>
-                  Declaro estar ciente dos termos de compra, certificado de autenticidade vitalício e entrega blindada com emissão de NF-e.
+                  Declaro estar ciente dos termos de compra, certificado de autenticidade vitalício e entrega segura especializada com emissão de NF-e.
                 </span>
               </label>
 
@@ -668,7 +668,7 @@ export default function CheckoutPage() {
 
             <div className="space-y-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
               <div className="flex justify-between py-1 border-b border-[#282E3A]">
-                <span>Previsão de Entrega Blindada:</span>
+                <span>Previsão de Entrega Segurada:</span>
                 <span className="text-[#F4F1EA]">3 dias úteis</span>
               </div>
               <div className="flex justify-between py-1 border-b border-[#282E3A]">

@@ -357,7 +357,7 @@ function ProductContent() {
   const handleCalcFreight = (e: React.FormEvent) => {
     e.preventDefault();
     if (cep.length >= 8) {
-      setFreightResult('Transporte Blindado Especial: Grátis (Prazo estimado: 2 a 4 dias úteis com escolta armada e seguro total Lloyd\'s)');
+      setFreightResult('Transporte Especializado: Grátis (Prazo estimado: 2 a 4 dias úteis com seguro total Lloyd\'s)');
     } else {
       setFreightResult('Por favor, digite um CEP válido com 8 dígitos.');
     }
@@ -956,7 +956,7 @@ function ProductContent() {
               <div className="pt-4 border-t border-[#282E3A] space-y-2.5">
                 <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-sm text-[#10B981]">local_shipping</span>
-                  Simulador de Frete e Entrega Blindada
+                  Simulador de Frete e Entrega Segura
                 </span>
                 <form onSubmit={handleCalcFreight} className="flex gap-2">
                   <input
@@ -1101,7 +1101,7 @@ function ProductContent() {
                       Protocolo de Envio e Proteção ao Comprador
                     </h4>
                     <p>
-                      A entrega é realizada via transporte blindado especial de alta segurança com cobertura integral de seguro da Lloyd&apos;s of London até a entrega e conferência em mãos do comprador.
+                      A entrega é realizada via transporte seguro especializado de alta segurança com cobertura integral de seguro da Lloyd&apos;s of London até a entrega e conferência em mãos do comprador.
                     </p>
                     <p>
                       Em conformidade com a legislação brasileira e o Código de Defesa do Consumidor, emitimos Nota Fiscal Eletrônica e Termo de Garantia Vitalícia de Autenticidade Registrado em Cartório de Títulos e Documentos.

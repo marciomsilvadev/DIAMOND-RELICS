@@ -54,7 +54,7 @@ export default function HomePage() {
     found: true,
     title: 'Camisa Oficial Usada por Pelé na Final da Copa de 1970',
     status: 'PRODUTO AUTÊNTICO • EM ESTOQUE',
-    facility: 'Cofre São Paulo Bandeirantes • Pronto para Transporte Blindado',
+    facility: 'Cofre São Paulo Bandeirantes • Pronto para Envio Especializado',
     policy: "Apólice Lloyd's of London R$ 30.000.000,00 (Cobertura 100%)",
     sku: 'PROD-1970-MEX-10',
   });
@@ -72,7 +72,7 @@ export default function HomePage() {
         found: true,
         title: 'Camisa Oficial Usada por Pelé na Final da Copa de 1970',
         status: 'PRODUTO AUTÊNTICO • EM ESTOQUE',
-        facility: 'Cofre São Paulo Bandeirantes • Pronto para Transporte Blindado',
+        facility: 'Cofre São Paulo Bandeirantes • Pronto para Envio Especializado',
         policy: "Apólice Lloyd's of London R$ 30.000.000,00 (Cobertura 100%)",
         sku: 'PROD-1970-MEX-10',
       });
@@ -176,7 +176,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#f2ca50] text-xl">local_shipping</span>
                   <div>
-                    <strong className="text-[#F4F1EA] block text-xs">Escolta Blindada</strong>
+                    <strong className="text-[#F4F1EA] block text-xs">Entrega Segura</strong>
                     <span className="text-[10px]">Seguro Total Lloyd&apos;s</span>
                   </div>
                 </div>
@@ -492,10 +492,10 @@ export default function HomePage() {
                 <span className="material-symbols-outlined text-2xl">shield</span>
               </div>
               <h3 className="text-base font-bold text-[#F4F1EA] font-['Playfair_Display']">
-                Transporte com Escolta Armada
+                Transporte Especial Segurado
               </h3>
               <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                Logística de valores de segurança máxima pela Brink&apos;s com apólice de seguro total da Lloyd&apos;s of London até a entrega em mãos.
+                Logística de alta segurança com rastreamento contínuo e apólice de seguro total da Lloyd&apos;s of London até a entrega em mãos.
               </p>
             </div>
 
