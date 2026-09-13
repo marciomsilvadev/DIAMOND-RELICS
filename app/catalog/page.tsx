@@ -396,14 +396,21 @@ export default function CatalogPage() {
                     key={relic.id}
                     className="bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(242,202,80,0.12)] flex flex-col group"
                   >
-                    {/* Imagem do Produto */}
-                    <div className="relative aspect-[4/3] bg-[#08090B] overflow-hidden">
+                    {/* Imagem do Produto com Auto-Ajuste Sem Cortes */}
+                    <div className="relative aspect-[4/3] bg-[#07090c] overflow-hidden flex items-center justify-center p-2.5 border-b border-[#282E3A]/60 select-none">
+                      {/* Ambient Glow Backdrop */}
+                      <div
+                        className="absolute inset-0 bg-cover bg-center opacity-25 blur-xl scale-125 pointer-events-none transition-all duration-500"
+                        style={{ backgroundImage: `url(${relic.imageUrl})` }}
+                      />
+                      <div className="absolute inset-0 bg-[#08090B]/55 pointer-events-none" />
+
+                      {/* Imagem Real 100% Visível sem Cortes */}
                       <img
                         src={relic.imageUrl}
                         alt={relic.altText}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] select-none"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#08090B] via-transparent to-transparent opacity-80" />
 
                       {/* Botão de Ampliação */}
                       <button

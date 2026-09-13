@@ -32,7 +32,7 @@ import { UserManagementTab } from '@/components/UserManagementTab';
 export default function AdminPage() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inventory' | 'cms' | 'orders' | 'users'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'panels' | 'cms' | 'orders' | 'users'>('inventory');
   const [products, setProducts] = useState<RelicItem[]>(CATALOG_RELICS);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -510,6 +510,18 @@ export default function AdminPage() {
             </button>
 
             <button
+              onClick={() => setActiveTab('panels')}
+              className={`px-5 py-2.5 text-xs font-['Space_Grotesk'] font-bold uppercase transition-colors flex items-center gap-2 ${
+                activeTab === 'panels'
+                  ? 'text-[#08090B] bg-[#f2ca50]'
+                  : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">dashboard_customize</span>
+              Painéis &amp; Seções do Site
+            </button>
+
+            <button
               onClick={() => setActiveTab('cms')}
               className={`px-5 py-2.5 text-xs font-['Space_Grotesk'] font-bold uppercase transition-colors flex items-center gap-2 ${
                 activeTab === 'cms'
@@ -804,7 +816,634 @@ export default function AdminPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 2: EDITOR VISUAL DE TEXTOS & ABAS (CMS TOTALMENTE EDITÁVEL) */}
+        {/* TAB 2: GERENCIADOR DE PAINÉIS & SEÇÕES DO SITE (ADICIONAR/REMOVER/EDITAR) */}
+        {/* ========================================================================= */}
+        {activeTab === 'panels' && (
+          <form onSubmit={handleSaveSiteConfig} className="space-y-6">
+            {!isUserAdmin && (
+              <div className="p-4 bg-amber-950/40 border border-amber-500/50 rounded-lg flex items-center gap-3 text-amber-200 text-xs font-['Space_Grotesk']">
+                <span className="material-symbols-outlined text-amber-400 text-xl">lock</span>
+                <div>
+                  <strong className="block text-amber-300 font-bold mb-0.5">Modo de Visualização para Operadores</strong>
+                  As alterações na exibição ou remoção de painéis do site são restritas a <strong>Administradores</strong>.
+                </div>
+              </div>
+            )}
+
+            {/* Notificação de Sucesso */}
+            {saveConfigSuccess && (
+              <div className="bg-[#10B981]/20 border border-[#10B981] p-4 rounded-lg flex items-center justify-between text-[#10B981] animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl">check_circle</span>
+                  <span className="font-['Space_Grotesk'] text-sm font-bold">
+                    Sucesso! A visibilidade e os textos de todos os painéis foram salvos e já estão ativos no site.
+                  </span>
+                </div>
+                <Link
+                  href="/"
+                  className="px-3 py-1 bg-[#10B981] text-[#08090B] font-bold text-xs rounded uppercase font-['Space_Grotesk']"
+                >
+                  Ver Home ao Vivo
+                </Link>
+              </div>
+            )}
+
+            {/* Cabeçalho da Aba de Painéis */}
+            <div className="bg-[#1A1E26] border border-[#282E3A] p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50]">dashboard_customize</span>
+                  Controle de Janelas, Painéis &amp; Seções da Loja
+                </h2>
+                <p className="text-xs text-[#9CA3AF] font-['Manrope'] mt-0.5">
+                  Escolha se deseja deixar ou remover cada janela/painel do site e edite o texto contido em cada um deles.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleResetSiteConfig}
+                  disabled={!isUserAdmin}
+                  className="px-3 py-2 bg-[#12151B] hover:bg-[#282E3A] border border-[#282E3A] text-[#9CA3AF] hover:text-[#F4F1EA] font-['Space_Grotesk'] text-xs rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Restaurar Padrões
+                </button>
+                <button
+                  type="submit"
+                  disabled={!isUserAdmin}
+                  className="px-5 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <span className="material-symbols-outlined text-sm">save</span>
+                  Salvar Alterações
+                </button>
+              </div>
+            </div>
+
+            {/* LISTAGEM DOS PAINÉIS */}
+            <div className="space-y-6">
+              {/* PAINEL 1: FAIXA SUPERIOR DE AVISOS (RELAYBAR) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">vertical_align_top</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        1. Faixa Superior de Anúncios &amp; Navegação (Topo de Tudo)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        A barra escura superior com nome da loja, status verde e aviso oficial.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showTopRelayBar !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.showTopRelayBar !== false ? '🟢 Ativo no Site' : '⚪ Ocultado'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showTopRelayBar !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showTopRelayBar: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {siteConfig.showTopRelayBar !== false && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div className="sm:col-span-2">
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                        Texto de Anúncio da Faixa Superior:
+                      </label>
+                      <input
+                        type="text"
+                        value={siteConfig.topBannerText || ''}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, topBannerText: e.target.value })
+                        }
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PAINEL 2: AVISO RÁPIDO DO MENU SUPERIOR (NAVBAR) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">call_to_action</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        2. Aviso Informativo no Menu Superior (Navbar)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Texto com bolinha dourada exibido ao lado do link do catálogo no menu principal.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showNavbarBadge !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.showNavbarBadge !== false ? '🟢 Ativo no Menu' : '⚪ Ocultado'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showNavbarBadge !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showNavbarBadge: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {siteConfig.showNavbarBadge !== false && (
+                  <div className="text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <label className="text-[#9CA3AF] block mb-1 font-semibold">
+                      Texto do Aviso do Menu:
+                    </label>
+                    <input
+                      type="text"
+                      value={siteConfig.navbarBadgeText || ''}
+                      onChange={(e) =>
+                        setSiteConfig({ ...siteConfig, navbarBadgeText: e.target.value })
+                      }
+                      placeholder="Ex: Envio Seguro Especializado"
+                      className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* PAINEL 3: SEÇÃO HERO & DESTAQUES */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">view_headline</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        3. Seção Hero (Banner Principal &amp; Card em Destaque)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Apresentação principal da Home, título de impacto e card de produto em destaque.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showHeroSection !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.showHeroSection !== false ? '🟢 Ativo no Site' : '⚪ Ocultado'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showHeroSection !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showHeroSection: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {siteConfig.showHeroSection !== false && (
+                  <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div className="flex items-center justify-between p-3 bg-[#08090B] border border-[#282E3A] rounded">
+                      <div>
+                        <span className="font-bold text-[#F4F1EA] block">
+                          Selos de Confiança (100% Autêntico / Entrega Segura / Pagamento em R$)
+                        </span>
+                        <span className="text-[11px] text-[#9CA3AF]">
+                          Exibe os 3 pequenos selos de garantia logo abaixo dos botões do Hero.
+                        </span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={siteConfig.showHeroTrustBadges !== false}
+                          onChange={(e) =>
+                            setSiteConfig({ ...siteConfig, showHeroTrustBadges: e.target.checked })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#10B981]"></div>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Tagline Superior:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.heroTagline || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, heroTagline: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Título Principal (H1):</label>
+                        <input
+                          type="text"
+                          value={siteConfig.heroTitle || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, heroTitle: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Texto / Subtítulo do Hero:</label>
+                        <textarea
+                          rows={2}
+                          value={siteConfig.heroSubtitle || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, heroSubtitle: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PAINEL 4: VITRINE DE PRODUTOS */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">grid_view</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        4. Vitrine de Produtos (Acervo da Home)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Grid com as relíquias esportivas disponíveis e cards com troca de fotos.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showVitrineSection !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.showVitrineSection !== false ? '🟢 Ativo no Site' : '⚪ Ocultado'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showVitrineSection !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showVitrineSection: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {siteConfig.showVitrineSection !== false && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">Badge Superior da Vitrine:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.showcaseBadge || ''}
+                        onChange={(e) => setSiteConfig({ ...siteConfig, showcaseBadge: e.target.value })}
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#9CA3AF] block mb-1 font-semibold">Título Principal da Vitrine:</label>
+                      <input
+                        type="text"
+                        value={siteConfig.showcaseTitle || ''}
+                        onChange={(e) => setSiteConfig({ ...siteConfig, showcaseTitle: e.target.value })}
+                        className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PAINEL 5: JANELA DE CONSULTA DE CERTIFICADO (COA) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#10B981] text-lg">verified</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        5. Janela de Consulta de Certificado Forense (COA)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Painel interativo onde o cliente digita o código do laudo para validar a autenticidade.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showCoaSection !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-red-950/40 text-red-300 border border-red-900/60'
+                      }`}
+                    >
+                      {siteConfig.showCoaSection !== false ? '🟢 Exibido no Site' : '⚪ Removido da Página'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showCoaSection !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showCoaSection: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-[#9CA3AF] font-['Space_Grotesk'] bg-[#08090B] p-2.5 rounded border border-[#282E3A]/60">
+                  <span>
+                    {siteConfig.showCoaSection !== false
+                      ? 'Esta janela está atualmente VISÍVEL na página inicial para os clientes consultarem certificados.'
+                      : 'Esta janela foi REMOVIDA da página inicial. O campo de busca de laudos não será exibido.'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSiteConfig({
+                        ...siteConfig,
+                        showCoaSection: !(siteConfig.showCoaSection !== false),
+                      })
+                    }
+                    className="text-[11px] font-bold text-[#f2ca50] hover:underline shrink-0 ml-2"
+                  >
+                    {siteConfig.showCoaSection !== false ? 'Remover Janela' : 'Reativar Janela'}
+                  </button>
+                </div>
+
+                {siteConfig.showCoaSection !== false && (
+                  <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Selo Superior:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.coaBadge || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, coaBadge: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Título Principal:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.coaTitle || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, coaTitle: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Texto de Instrução:</label>
+                        <textarea
+                          rows={2}
+                          value={siteConfig.coaSubtitle || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, coaSubtitle: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Placeholder do Campo:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.coaPlaceholder || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, coaPlaceholder: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Texto do Botão:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.coaBtnText || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, coaBtnText: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PAINEL 6: JANELA "POR QUE COMPRAR?" (GARANTIAS EXCLUSIVAS) */}
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-4">
+                <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                        6. Janela &quot;Por que Comprar?&quot; (Garantias Exclusivas &amp; Benefícios)
+                      </h3>
+                      <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Os 3 cards de diferenciais da loja (Perícia Forense, Transporte Especial e Nota Fiscal).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-['Space_Grotesk'] ${
+                        siteConfig.showBenefitsSection !== false
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-red-950/40 text-red-300 border border-red-900/60'
+                      }`}
+                    >
+                      {siteConfig.showBenefitsSection !== false ? '🟢 Exibido no Site' : '⚪ Removido da Página'}
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.showBenefitsSection !== false}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, showBenefitsSection: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-[#9CA3AF] font-['Space_Grotesk'] bg-[#08090B] p-2.5 rounded border border-[#282E3A]/60">
+                  <span>
+                    {siteConfig.showBenefitsSection !== false
+                      ? 'Esta janela está atualmente VISÍVEL na página inicial da loja.'
+                      : 'Esta janela foi REMOVIDA da página inicial. Os 3 cards de garantias não serão exibidos.'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSiteConfig({
+                        ...siteConfig,
+                        showBenefitsSection: !(siteConfig.showBenefitsSection !== false),
+                      })
+                    }
+                    className="text-[11px] font-bold text-[#f2ca50] hover:underline shrink-0 ml-2"
+                  >
+                    {siteConfig.showBenefitsSection !== false ? 'Remover Janela' : 'Reativar Janela'}
+                  </button>
+                </div>
+
+                {siteConfig.showBenefitsSection !== false && (
+                  <div className="space-y-4 text-xs font-['Space_Grotesk'] pt-1 animate-fadeIn">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Selo Superior:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.benefitsBadge || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, benefitsBadge: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#9CA3AF] block mb-1 font-semibold">Título Principal da Seção:</label>
+                        <input
+                          type="text"
+                          value={siteConfig.benefitsTitle || ''}
+                          onChange={(e) => setSiteConfig({ ...siteConfig, benefitsTitle: e.target.value })}
+                          className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#282E3A] grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Card 1 */}
+                      <div className="p-3 bg-[#08090B] border border-[#282E3A] rounded space-y-2">
+                        <span className="font-bold text-[#f2ca50] block">Card 1: Perícia</span>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Título:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.benefit1Title || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit1Title: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Descrição:</label>
+                          <textarea
+                            rows={3}
+                            value={siteConfig.benefit1Desc || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit1Desc: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Card 2 */}
+                      <div className="p-3 bg-[#08090B] border border-[#282E3A] rounded space-y-2">
+                        <span className="font-bold text-[#f2ca50] block">Card 2: Transporte Especial</span>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Título:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.benefit2Title || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit2Title: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Descrição:</label>
+                          <textarea
+                            rows={3}
+                            value={siteConfig.benefit2Desc || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit2Desc: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Card 3 */}
+                      <div className="p-3 bg-[#08090B] border border-[#282E3A] rounded space-y-2">
+                        <span className="font-bold text-[#f2ca50] block">Card 3: Nota Fiscal / Cartório</span>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Título:</label>
+                          <input
+                            type="text"
+                            value={siteConfig.benefit3Title || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit3Title: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#9CA3AF] text-[10px] block mb-0.5">Descrição:</label>
+                          <textarea
+                            rows={3}
+                            value={siteConfig.benefit3Desc || ''}
+                            onChange={(e) => setSiteConfig({ ...siteConfig, benefit3Desc: e.target.value })}
+                            className="w-full bg-[#12151B] border border-[#282E3A] rounded px-2.5 py-1.5 text-[#F4F1EA] text-xs focus:border-[#f2ca50] outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Botão de Salvar Rodapé */}
+            <div className="p-4 bg-[#1A1E26] border border-[#282E3A] rounded-lg flex items-center justify-between">
+              <span className="text-xs text-[#9CA3AF] font-['Manrope']">
+                As configurações de painéis entram em vigor imediatamente após salvar.
+              </span>
+              <button
+                type="submit"
+                disabled={!isUserAdmin}
+                className="px-6 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-sm">save</span>
+                Salvar Alterações dos Painéis
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: EDITOR VISUAL DE TEXTOS & ABAS (CMS TOTALMENTE EDITÁVEL) */}
         {/* ========================================================================= */}
         {activeTab === 'cms' && (
           <form onSubmit={handleSaveSiteConfig} className="space-y-6">
@@ -1091,6 +1730,143 @@ export default function AdminPage() {
                       className="w-full bg-[#08090B] border border-[#282E3A] rounded px-3 py-2 text-[#F4F1EA] focus:outline-none focus:border-[#f2ca50]"
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO 3.1: Configurações do Carrossel das Peças em Destaque */}
+            <div className="bg-[#12151B] border border-[#f2ca50]/50 rounded-lg p-5 space-y-5 shadow-[0_0_25px_rgba(242,202,80,0.08)]">
+              <div className="border-b border-[#282E3A] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-xl">view_carousel</span>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider">
+                      Carrossel &amp; Transição das Peças em Destaque
+                    </h3>
+                    <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                      Controle a alternância automática de fotos e o tempo de cada imagem nas peças em destaque.
+                    </p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 bg-[#f2ca50]/20 text-[#f2ca50] border border-[#f2ca50]/40 rounded text-[10px] font-bold uppercase font-['Space_Grotesk'] self-start sm:self-center">
+                  Controle Dinâmico
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* 1. Ativar / Desativar Carrossel Automático */}
+                <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] block">
+                        Carrossel Automático no Destaque
+                      </span>
+                      <span className="text-[11px] text-[#9CA3AF] font-['Manrope'] block mt-0.5">
+                        {siteConfig.featuredAutoPlay ?? true
+                          ? 'As imagens cadastradas da peça em destaque passarão sozinhas continuamente.'
+                          : 'Carrossel automático desligado. A troca de imagens ocorre apenas pelo clique do visitante.'}
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={siteConfig.featuredAutoPlay ?? true}
+                        onChange={(e) =>
+                          setSiteConfig({ ...siteConfig, featuredAutoPlay: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-[#282E3A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+                    </label>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#282E3A]/60 flex items-center justify-between text-[11px] font-['Space_Grotesk']">
+                    <span className="text-[#9CA3AF]">Status da Rotação:</span>
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded text-[10px] uppercase ${
+                        siteConfig.featuredAutoPlay ?? true
+                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          : 'bg-[#282E3A] text-[#9CA3AF]'
+                      }`}
+                    >
+                      {siteConfig.featuredAutoPlay ?? true ? 'Ativado (Girando)' : 'Pausado Manual'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Controle de Tempo por Imagem */}
+                <div className="p-4 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] block">
+                        Tempo de Cada Imagem
+                      </span>
+                      <span className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                        Duração de exibição antes de mudar para a próxima foto.
+                      </span>
+                    </div>
+
+                    <div className="px-3 py-1 bg-[#12151B] border border-[#f2ca50] text-[#f2ca50] font-bold text-xs rounded font-['Space_Grotesk']">
+                      {siteConfig.featuredIntervalSeconds || 4}s
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-1">
+                    <input
+                      type="range"
+                      min="2"
+                      max="15"
+                      step="1"
+                      value={siteConfig.featuredIntervalSeconds || 4}
+                      onChange={(e) =>
+                        setSiteConfig({
+                          ...siteConfig,
+                          featuredIntervalSeconds: parseInt(e.target.value, 10) || 4,
+                        })
+                      }
+                      className="w-full accent-[#f2ca50] cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-[#9CA3AF] font-['Space_Grotesk']">
+                      <span>Mais Rápido (2s)</span>
+                      <span>Recomendado (4s - 5s)</span>
+                      <span>Mais Lento (15s)</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#282E3A]/60 flex items-center justify-between text-[11px] font-['Space_Grotesk']">
+                    <span className="text-[#9CA3AF]">Ajuste Numérico Preciso:</span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="2"
+                        max="30"
+                        value={siteConfig.featuredIntervalSeconds || 4}
+                        onChange={(e) =>
+                          setSiteConfig({
+                            ...siteConfig,
+                            featuredIntervalSeconds: Math.max(2, parseInt(e.target.value, 10) || 2),
+                          })
+                        }
+                        className="w-16 bg-[#12151B] border border-[#282E3A] rounded px-2 py-0.5 text-center text-[#F4F1EA] font-bold text-xs focus:border-[#f2ca50] outline-none"
+                      />
+                      <span className="text-[#9CA3AF] text-xs">segundos</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informação sobre Auto-Ajuste sem Cortes & Pausa com o Mouse */}
+              <div className="p-3 bg-[#12151B]/80 border border-[#282E3A] rounded flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#10B981] text-lg">check_circle</span>
+                  <span>
+                    <strong>Auto-Ajuste Ativo:</strong> As imagens na vitrine e nos destaques nunca sofrem cortes, exibindo 100% da peça com acabamento de luxo.
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-[#C59B27] shrink-0">
+                  <span className="material-symbols-outlined text-sm">touch_app</span>
+                  <span>Pausa automática ao passar o mouse</span>
                 </div>
               </div>
             </div>

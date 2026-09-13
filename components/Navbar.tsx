@@ -64,10 +64,12 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
             <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
             {config.navCatalog || 'Catálogo de Produtos'}
           </Link>
-          <span className="text-[#9CA3AF] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50]"></span>
-            Envio Seguro Especializado
-          </span>
+          {config.showNavbarBadge !== false && (
+            <span className="text-[#9CA3AF] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50]"></span>
+              {config.navbarBadgeText || 'Envio Seguro Especializado'}
+            </span>
+          )}
         </nav>
       </div>
 

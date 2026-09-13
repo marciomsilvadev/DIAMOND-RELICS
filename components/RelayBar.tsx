@@ -24,6 +24,10 @@ export function RelayBar() {
     { href: '/admin', label: config.navAdmin || 'Painel da Loja' },
   ];
 
+  if (config.showTopRelayBar === false) {
+    return null;
+  }
+
   return (
     <aside
       aria-label="Navegação da Loja Virtual"

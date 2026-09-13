@@ -7,6 +7,42 @@ export interface SiteConfig {
   contactPhone: string;
   contactEmail: string;
 
+  // ==========================================
+  // Controle de Visibilidade dos Painéis (Janelas)
+  // ==========================================
+  showTopRelayBar: boolean;
+  showNavbarBadge: boolean;
+  navbarBadgeText: string;
+  showHeroSection: boolean;
+  showHeroTrustBadges: boolean;
+  showVitrineSection: boolean;
+  showCoaSection: boolean;
+  showBenefitsSection: boolean;
+
+  // ==========================================
+  // Textos do Painel de Consulta de Certificado (COA)
+  // ==========================================
+  coaBadge: string;
+  coaTitle: string;
+  coaSubtitle: string;
+  coaPlaceholder: string;
+  coaBtnText: string;
+
+  // ==========================================
+  // Textos do Painel de Garantias e Benefícios
+  // ==========================================
+  benefitsBadge: string;
+  benefitsTitle: string;
+  benefit1Icon: string;
+  benefit1Title: string;
+  benefit1Desc: string;
+  benefit2Icon: string;
+  benefit2Title: string;
+  benefit2Desc: string;
+  benefit3Icon: string;
+  benefit3Title: string;
+  benefit3Desc: string;
+
   // Nomes das Abas do Menu de Navegação
   navHome: string;
   navCatalog: string;
@@ -25,6 +61,10 @@ export interface SiteConfig {
   showcaseBadge: string;
   showcaseTitle: string;
   showcaseSubtitle: string;
+
+  // Carrossel de Peças em Destaque
+  featuredAutoPlay: boolean;
+  featuredIntervalSeconds: number;
 
   // Página de Catálogo
   catalogPageTitle: string;
@@ -78,6 +118,40 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   contactPhone: '+55 (11) 99842-1970',
   contactEmail: 'concierge@diamondrelics.com.br',
 
+  // Visibilidade Padrão dos Painéis
+  showTopRelayBar: true,
+  showNavbarBadge: true,
+  navbarBadgeText: 'Envio Seguro Especializado',
+  showHeroSection: true,
+  showHeroTrustBadges: true,
+  showVitrineSection: true,
+  showCoaSection: true,
+  showBenefitsSection: true,
+
+  // Textos do Painel de Consulta COA
+  coaBadge: 'CONSULTA DE AUTENTICIDADE',
+  coaTitle: 'Consulte o Certificado de um Produto',
+  coaSubtitle:
+    'Digite o código do certificado de autenticidade (COA) para verificar os laudos periciais e a procedência do item no acervo.',
+  coaPlaceholder: 'Ex: COA-PEL-1970-MEX-9801',
+  coaBtnText: 'Consultar',
+
+  // Textos do Painel de Garantias e Benefícios
+  benefitsBadge: 'GARANTIAS EXCLUSIVAS',
+  benefitsTitle: 'Por que Comprar na Diamond Relics?',
+  benefit1Icon: 'biotech',
+  benefit1Title: 'Perícia Forense 8K e C14',
+  benefit1Desc:
+    'Todas as peças passam por rigorosa análise espectrométrica molecular, correspondência fotográfica e laudos periciais chancelados.',
+  benefit2Icon: 'shield',
+  benefit2Title: 'Transporte Especial Segurado',
+  benefit2Desc:
+    "Logística de alta segurança com rastreamento contínuo e apólice de seguro total da Lloyd's of London até a entrega em mãos.",
+  benefit3Icon: 'receipt_long',
+  benefit3Title: 'Nota Fiscal e Certificado Notarial',
+  benefit3Desc:
+    'Emissão de Nota Fiscal Eletrônica e termo de autenticidade vitalício registrado em Cartório de Registro de Títulos e Documentos.',
+
   // Nomes das Abas de Navegação
   navHome: 'Início',
   navCatalog: 'Catálogo de Produtos',
@@ -97,6 +171,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   showcaseBadge: 'PRODUTOS DISPONÍVEIS EM ESTOQUE',
   showcaseTitle: 'Acervo de Relíquias Esportivas',
   showcaseSubtitle: 'Peças históricas originais com laudos forenses e certificado vitalício.',
+
+  // Carrossel de Peças em Destaque
+  featuredAutoPlay: true,
+  featuredIntervalSeconds: 4,
 
   // Página de Catálogo
   catalogPageTitle: 'Catálogo de Relíquias Esportivas',
@@ -151,11 +229,23 @@ const CONFIG_STORAGE_KEY = 'diamond_relics_site_config_v1';
 export function getStoredSiteConfig(): SiteConfig {
   if (typeof window === 'undefined') return DEFAULT_SITE_CONFIG;
   try {
-    const raw = localStorage.getItem(CONFIG_STORAGE_KEY);
+    let raw = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!raw) {
       localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(DEFAULT_SITE_CONFIG));
       return DEFAULT_SITE_CONFIG;
     }
+
+    // Auto-sanitização de cache antigo (remove qualquer vestígio de escolta armada/blindada em navegadores antigos)
+    if (raw.includes('Blindada') || raw.includes('blindada') || raw.includes('Armada') || raw.includes('armada')) {
+      raw = raw
+        .replace(/Entrega Blindada Segurada/gi, 'Entrega Segura e Segurada')
+        .replace(/com Escolta Blindada/gi, 'Especializado')
+        .replace(/Escolta Armada/gi, 'Especial Segurado')
+        .replace(/Transporte Blindado/gi, 'Envio Especializado')
+        .replace(/Transporte com Escolta Armada/gi, 'Transporte Especial Segurado');
+      localStorage.setItem(CONFIG_STORAGE_KEY, raw);
+    }
+
     const parsed = JSON.parse(raw);
     return { ...DEFAULT_SITE_CONFIG, ...parsed };
   } catch (err) {
