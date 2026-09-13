@@ -462,34 +462,40 @@ export default function AdminPage() {
                   {session.user.department || 'Painel da Loja'}
                 </span>
               </div>
-              <button
-                onClick={() => {
-                  logout();
-                  setSession(null);
-                }}
-                className="ml-1 px-2 py-1 bg-[#1A1E26] hover:bg-red-950/60 border border-[#282E3A] hover:border-red-500/50 text-[#9CA3AF] hover:text-red-400 rounded text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                title="Encerrar Sessão Segura"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-                <span className="hidden sm:inline text-[10px] uppercase font-bold">Sair</span>
-              </button>
             </div>
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-4 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">add_circle</span>
               Adicionar Novo Produto
             </button>
 
             <Link
-              href="/catalog"
+              href="/"
               className="px-4 py-2.5 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors"
+              title="Voltar para a Página Inicial da Loja"
             >
               <span className="material-symbols-outlined text-base text-[#f2ca50]">storefront</span>
               Ver Loja ao Vivo
             </Link>
+
+            {/* BOTÃO PROMINENTE: SAIR DO PAINEL */}
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('Deseja realmente sair e encerrar a sua sessão no Painel de Administração?')) {
+                  logout();
+                  setSession(null);
+                }
+              }}
+              className="px-4 py-2.5 bg-red-950/60 hover:bg-red-900 border border-red-700/80 hover:border-red-500 text-red-200 hover:text-white font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+              title="Encerrar Sessão e Sair do Painel"
+            >
+              <span className="material-symbols-outlined text-base text-red-400">logout</span>
+              Sair do Painel
+            </button>
           </div>
         </div>
       </section>

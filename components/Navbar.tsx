@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { RELIC_IMAGES } from '@/lib/relics-data';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
-import { getCurrentSession, AuthSession } from '@/lib/auth-store';
+import { getCurrentSession, logout, AuthSession } from '@/lib/auth-store';
 
 interface NavbarProps {
   currentSearch?: string;
@@ -196,6 +196,23 @@ export function Navbar({ currentSearch, onSearchChange, cartCount = 1 }: NavbarP
               </span>
             )}
           </Link>
+
+          {session && (
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('Deseja realmente sair e encerrar a sua sessão?')) {
+                  logout();
+                  setSession(null);
+                }
+              }}
+              className="px-2 py-1 bg-red-950/40 hover:bg-red-900 border border-red-800/50 hover:border-red-500 text-red-300 hover:text-white rounded text-[11px] font-['Space_Grotesk'] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer"
+              title="Encerrar Sessão (Sair da Conta)"
+            >
+              <span className="material-symbols-outlined text-sm">logout</span>
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

@@ -4,16 +4,27 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
+import { getCurrentSession, logout, AuthSession } from '@/lib/auth-store';
 
 export function RelayBar() {
   const pathname = usePathname();
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [session, setSession] = useState<AuthSession | null>(null);
 
   useEffect(() => {
     setConfig(getStoredSiteConfig());
-    const handleUpdate = () => setConfig(getStoredSiteConfig());
-    window.addEventListener('diamond_config_updated', handleUpdate);
-    return () => window.removeEventListener('diamond_config_updated', handleUpdate);
+    setSession(getCurrentSession());
+
+    const handleConfigUpdate = () => setConfig(getStoredSiteConfig());
+    const handleSessionUpdate = () => setSession(getCurrentSession());
+
+    window.addEventListener('diamond_config_updated', handleConfigUpdate);
+    window.addEventListener('diamond_session_updated', handleSessionUpdate);
+
+    return () => {
+      window.removeEventListener('diamond_config_updated', handleConfigUpdate);
+      window.removeEventListener('diamond_session_updated', handleSessionUpdate);
+    };
   }, []);
 
   const links = [
@@ -65,6 +76,23 @@ export function RelayBar() {
             </Link>
           );
         })}
+
+        {session && (
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('Deseja realmente sair e encerrar a sua sessão?')) {
+                logout();
+                setSession(null);
+              }
+            }}
+            className="px-2.5 py-1 rounded text-xs bg-red-950/50 hover:bg-red-900 text-red-300 hover:text-white border border-red-800/60 hover:border-red-500 font-semibold transition-all flex items-center gap-1 shrink-0 ml-1 cursor-pointer"
+            title="Encerrar Sessão (Sair da Conta)"
+          >
+            <span className="material-symbols-outlined text-xs text-red-400">logout</span>
+            <span>Sair</span>
+          </button>
+        )}
       </nav>
     </aside>
   );
