@@ -2,17 +2,17 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Diamond Relics Archive Vault — Sovereign Provenance Ledger',
-  description: 'Arquivo soberano de memorabilia esportiva mundial, custódia fiduciária em escrow e ledger criptográfico de proveniência com certificação forense.',
+  title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
+  description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
   openGraph: {
-    title: 'Diamond Relics Archive Vault — Sovereign Provenance Ledger',
-    description: 'Arquivo soberano de memorabilia esportiva mundial, custódia fiduciária em escrow e ledger criptográfico de proveniência com certificação forense.',
+    title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
+    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Diamond Relics Archive Vault — Sovereign Provenance Ledger',
-    description: 'Arquivo soberano de memorabilia esportiva mundial, custódia fiduciária em escrow e ledger criptográfico de proveniência com certificação forense.',
+    title: 'Diamond Relics — Loja Oficial de Relíquias e Memorabilia Esportiva',
+    description: 'A mais exclusiva loja de memorabilia esportiva original do Brasil. Camisas de jogo autênticas, capacetes históricos e troféus raros com certificação forense, garantia vitalícia e entrega blindada.',
   },
 };
 

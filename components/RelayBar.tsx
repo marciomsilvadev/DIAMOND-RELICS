@@ -1,29 +1,41 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
 
 export function RelayBar() {
   const pathname = usePathname();
+  const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+
+  useEffect(() => {
+    setConfig(getStoredSiteConfig());
+    const handleUpdate = () => setConfig(getStoredSiteConfig());
+    window.addEventListener('diamond_config_updated', handleUpdate);
+    return () => window.removeEventListener('diamond_config_updated', handleUpdate);
+  }, []);
 
   const links = [
-    { href: '/', label: 'Home', fullLabel: 'Home (index.html)' },
-    { href: '/catalog', label: 'Catálogo (Acervo)', fullLabel: 'Catálogo (catalog.html)' },
-    { href: '/product', label: 'Lote Pelé 1970', fullLabel: 'Lote Pelé (product.html)' },
-    { href: '/checkout', label: 'Custódia & Checkout', fullLabel: 'Custódia (checkout.html)' },
-    { href: '/admin', label: 'Ledger Admin', fullLabel: 'Ledger Admin (admin.html)' },
+    { href: '/', label: config.navHome || 'Início' },
+    { href: '/catalog', label: config.navCatalog || 'Catálogo de Produtos' },
+    { href: '/product', label: config.navProduct || 'Peça em Destaque' },
+    { href: '/checkout', label: config.navCheckout || 'Carrinho & Checkout' },
+    { href: '/admin', label: config.navAdmin || 'Painel da Loja' },
   ];
 
   return (
     <aside
-      aria-label="Simulação de Rotas do Sistema"
+      aria-label="Navegação da Loja Virtual"
       className="w-full bg-[#08090B] border-b border-[#282E3A] px-4 md:px-6 py-2 flex flex-wrap items-center justify-between text-[12px] font-['Space_Grotesk'] text-[#9CA3AF] z-50 select-none"
     >
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-        <span className="text-[#E5C875] font-medium tracking-wide">DIAMOND RELICS NET</span>
+        <span className="text-[#E5C875] font-medium tracking-wide">
+          {config.storeName ? config.storeName.toUpperCase() : 'DIAMOND RELICS'} BRASIL
+        </span>
         <span className="text-[#282E3A]">|</span>
-        <span className="hidden sm:inline">Nó Ativo: Zurich Core-01 • Ledger SHA-256</span>
+        <span className="hidden sm:inline">{config.topBannerText}</span>
       </div>
 
       <nav className="flex items-center gap-2 md:gap-3 overflow-x-auto py-1 custom-scrollbar">

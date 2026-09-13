@@ -1,22 +1,121 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, MouseEvent, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { RelayBar } from '@/components/RelayBar';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ImageModal } from '@/components/ImageModal';
-import { RELIC_IMAGES } from '@/lib/relics-data';
+import { RELIC_IMAGES, RelicItem, CATALOG_RELICS } from '@/lib/relics-data';
+import { getStoredProducts } from '@/lib/products-store';
+import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
+import { preloadHdImage } from '@/lib/media-helper';
 
-export default function ProductPage() {
-  const [activeTab, setActiveTab] = useState<'provenance' | 'specs' | 'transport'>('provenance');
-  const [magnification, setMagnification] = useState<'1.0x' | '4.5x' | '8k'>('4.5x');
+function ProductContent() {
+  const searchParams = useSearchParams();
+  const currentId = searchParams.get('id');
+
+  const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [products, setProducts] = useState<RelicItem[]>(CATALOG_RELICS);
+  const [activeTab, setActiveTab] = useState<'provenance' | 'specs' | 'shipping'>('provenance');
+
+  // Sistema de Ultra-Zoom Forense (1.5x a 10.0x / até 1000% para perícia da assinatura)
+  const [zoomScale, setZoomScale] = useState<number>(3.5);
+  const [lupaMode, setLupaMode] = useState<'lens' | 'flyout' | 'pan'>('lens');
+  const [lensDiameter, setLensDiameter] = useState<number>(300); // Diâmetro ampliado da lupa (padrão 300px, ajustável até 460px)
+  const [hdReady, setHdReady] = useState<boolean>(false);
   const [lightFilter, setLightFilter] = useState<'normal' | 'uv' | 'raking'>('normal');
 
-  // Interactive specimen angle views
-  const specimenAngles = [
+  // Lupa interativa no palco principal com cálculo óptico em pixels reais
+  const [isStageLupaActive, setIsStageLupaActive] = useState<boolean>(true);
+  const [stageLensPos, setStageLensPos] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    bgWidth: number;
+    bgHeight: number;
+    bgPosX: number;
+    bgPosY: number;
+    flyoutBgPosX: number;
+    flyoutBgPosY: number;
+    xInImg: number;
+    yInImg: number;
+    imgWidth: number;
+    imgHeight: number;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    bgWidth: 0,
+    bgHeight: 0,
+    bgPosX: 0,
+    bgPosY: 0,
+    flyoutBgPosX: 0,
+    flyoutBgPosY: 0,
+    xInImg: 0,
+    yInImg: 0,
+    imgWidth: 0,
+    imgHeight: 0,
+  });
+
+  // Modo Mesa de Luz (Pan & Drag + Wheel Zoom de 1x a 12x)
+  const [panState, setPanState] = useState<{
+    zoom: number;
+    panX: number;
+    panY: number;
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+  }>({
+    zoom: 1,
+    panX: 0,
+    panY: 0,
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+  });
+
+  const stageContainerRef = useRef<HTMLDivElement>(null);
+  const stageImgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setProducts(getStoredProducts());
+    setConfig(getStoredSiteConfig());
+
+    const handleProductsUpdate = () => setProducts(getStoredProducts());
+    const handleConfigUpdate = () => setConfig(getStoredSiteConfig());
+
+    window.addEventListener('diamond_products_updated', handleProductsUpdate);
+    window.addEventListener('diamond_config_updated', handleConfigUpdate);
+
+    return () => {
+      window.removeEventListener('diamond_products_updated', handleProductsUpdate);
+      window.removeEventListener('diamond_config_updated', handleConfigUpdate);
+    };
+  }, []);
+
+  // Selecionar o item clicado (?id=...) ou a peça em destaque
+  const product =
+    (currentId ? products.find((p) => p.id === currentId) : null) ||
+    products.find((p) => p.featured) ||
+    products[0] ||
+    CATALOG_RELICS[0];
+  const isSold = product.status === 'sold';
+
+  interface DisplayMedia {
+    id: string;
+    type: 'image' | 'video';
+    label: string;
+    badge: string;
+    url: string;
+    desc: string;
+  }
+
+  const fallbackAngles: DisplayMedia[] = [
     {
       id: 'macro',
+      type: 'image',
       label: 'Foco Macro #10',
       badge: 'MACRO 8K',
       url: RELIC_IMAGES.peleProductMacro,
@@ -24,13 +123,15 @@ export default function ProductPage() {
     },
     {
       id: 'front',
+      type: 'image',
       label: 'Frente Canarinho #10',
       badge: 'VISTA TOTAL',
-      url: RELIC_IMAGES.peleProductFullFront,
+      url: product.imageUrl || RELIC_IMAGES.peleProductFullFront,
       desc: 'Visão panorâmica da camisa do Tricampeonato Mundial de 1970',
     },
     {
       id: 'signature',
+      type: 'image',
       label: 'Autógrafo Caligráfico',
       badge: 'ASSINATURA',
       url: RELIC_IMAGES.peleProductSignature,
@@ -38,6 +139,7 @@ export default function ProductPage() {
     },
     {
       id: 'weave',
+      type: 'image',
       label: 'Trama & Etiqueta 1970',
       badge: 'ETIQUETA',
       url: RELIC_IMAGES.peleProductFabricWeave,
@@ -45,36 +147,197 @@ export default function ProductPage() {
     },
     {
       id: 'coa',
+      type: 'image',
       label: 'Lacre Físico COA-9801',
-      badge: 'COA SEAL',
+      badge: 'COA OFICIAL',
       url: RELIC_IMAGES.peleProductCoaDoc,
       desc: 'Certificado físico notarial com lacre inviolável e selo dourado',
     },
   ];
 
-  const [activeAngle, setActiveAngle] = useState(specimenAngles[0]);
-  const [bidValue, setBidValue] = useState(4900000);
+  const galleryItems: DisplayMedia[] =
+    product.gallery && product.gallery.length > 0
+      ? product.gallery.map((m, idx) => ({
+          id: m.id || `g-${idx}`,
+          type: m.type || 'image',
+          label: m.title || (m.type === 'video' ? `Vídeo Oficial #${idx + 1}` : `Foto Detalhada #${idx + 1}`),
+          badge: m.type === 'video' ? 'VÍDEO HD' : idx === 0 ? 'CAPA' : `FOTO #${idx + 1}`,
+          url: m.url,
+          desc: m.title || `Exibição de mídia #${idx + 1} da peça histórica`,
+        }))
+      : product.id === 'pel-1970'
+      ? fallbackAngles
+      : [
+          {
+            id: 'cover',
+            type: 'image' as const,
+            label: product.title,
+            badge: 'FOTO OFICIAL',
+            url: product.imageUrl,
+            desc: product.title,
+          },
+        ];
+
+  const [activeMedia, setActiveMedia] = useState<DisplayMedia | null>(null);
+
+  const currentMedia: DisplayMedia =
+    activeMedia ||
+    galleryItems[0] ||
+    fallbackAngles[0] || {
+      id: 'fallback',
+      type: 'image' as const,
+      label: product?.title || 'Relíquia Esportiva',
+      badge: 'FOTO OFICIAL',
+      url: product?.imageUrl || RELIC_IMAGES.peleProductFullFront,
+      desc: product?.title || 'Exibição da peça histórica',
+    };
+
+  useEffect(() => {
+    if (galleryItems.length > 0) {
+      setActiveMedia(galleryItems[0]);
+    }
+    setHdReady(false);
+  }, [product]);
+
+  // Carregamento sob demanda: dispara o buffer HD no primeiro hover do usuário
+  const handleStageMouseEnter = () => {
+    if (currentMedia?.url && currentMedia.type !== 'video' && !hdReady) {
+      preloadHdImage(currentMedia.url).then(() => setHdReady(true));
+    }
+  };
+
+  // Cálculo Óptico de Precisão Absoluta em Pixels (elimina 100% de desalinhamento de letterbox)
+  const handleStageMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!stageContainerRef.current || !stageImgRef.current || currentMedia?.type === 'video' || !isStageLupaActive) return;
+
+    // Se estiver no modo Mesa de Luz e arrastando
+    if (lupaMode === 'pan') {
+      if (panState.isDragging) {
+        setPanState((prev) => ({
+          ...prev,
+          panX: prev.panX + (e.clientX - prev.startX),
+          panY: prev.panY + (e.clientY - prev.startY),
+          startX: e.clientX,
+          startY: e.clientY,
+        }));
+      }
+      return;
+    }
+
+    const imgRect = stageImgRef.current.getBoundingClientRect();
+    const stageRect = stageContainerRef.current.getBoundingClientRect();
+
+    // Ponto relativo estritamente aos pixels reais renderizados da imagem
+    const xInImg = e.clientX - imgRect.left;
+    const yInImg = e.clientY - imgRect.top;
+
+    // Se o cursor estiver fora da foto (nas barras pretas de padding), esconde a lente
+    if (xInImg < 0 || yInImg < 0 || xInImg > imgRect.width || yInImg > imgRect.height) {
+      setStageLensPos((prev) => ({ ...prev, visible: false }));
+      return;
+    }
+
+    const lensRadius = lensDiameter / 2; // Diâmetro configurável (raio proporcional)
+    const flyoutRadius = 260; // Janela Flyout de 520px (raio = 260px)
+
+    const lensX = e.clientX - stageRect.left;
+    const lensY = e.clientY - stageRect.top;
+
+    const bgWidth = imgRect.width * zoomScale;
+    const bgHeight = imgRect.height * zoomScale;
+
+    // Fórmula óptica absoluta: o pixel exato sob a mira fica 100% centralizado no meio da lente
+    const bgPosX = -(xInImg * zoomScale - lensRadius);
+    const bgPosY = -(yInImg * zoomScale - lensRadius);
+
+    const flyoutBgPosX = -(xInImg * zoomScale - flyoutRadius);
+    const flyoutBgPosY = -(yInImg * zoomScale - flyoutRadius);
+
+    setStageLensPos({
+      visible: true,
+      x: lensX,
+      y: lensY,
+      bgWidth,
+      bgHeight,
+      bgPosX,
+      bgPosY,
+      flyoutBgPosX,
+      flyoutBgPosY,
+      xInImg,
+      yInImg,
+      imgWidth: imgRect.width,
+      imgHeight: imgRect.height,
+    });
+  };
+
+  const handleStageWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (currentMedia?.type === 'video' || !isStageLupaActive) return;
+    e.preventDefault();
+
+    // Shift + Scroll: redimensiona o diâmetro da lente da lupa em tempo real (180px a 480px)
+    if (e.shiftKey && lupaMode === 'lens') {
+      const deltaSize = e.deltaY < 0 ? 30 : -30;
+      setLensDiameter((prev) => Math.min(480, Math.max(180, prev + deltaSize)));
+      return;
+    }
+
+    const delta = e.deltaY < 0 ? 0.5 : -0.5;
+
+    if (lupaMode === 'pan') {
+      setPanState((prev) => ({
+        ...prev,
+        zoom: Math.min(12, Math.max(1, Number((prev.zoom + delta * 0.8).toFixed(1)))),
+      }));
+    } else {
+      setZoomScale((prev) => Math.min(10, Math.max(1.5, Number((prev + delta).toFixed(1)))));
+    }
+  };
+
+  const handleStageMouseLeave = () => {
+    setStageLensPos((prev) => ({ ...prev, visible: false }));
+    if (panState.isDragging) {
+      setPanState((prev) => ({ ...prev, isDragging: false }));
+    }
+  };
+
+  // Botão Pericial: Foco Instantâneo na Assinatura com Zoom 8x
+  const handleFocusSignature = () => {
+    const sigMedia = galleryItems.find(
+      (m) =>
+        m.label.toLowerCase().includes('assinatura') ||
+        m.label.toLowerCase().includes('autógrafo') ||
+        m.id.includes('signature') ||
+        m.id.includes('macro')
+    );
+    if (sigMedia) {
+      setActiveMedia(sigMedia);
+    }
+    setZoomScale(8.0);
+    setIsStageLupaActive(true);
+    setLupaMode('lens');
+    setPanState((prev) => ({ ...prev, zoom: 6 }));
+  };
+
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [reportDownloaded, setReportDownloaded] = useState(false);
-  const [showInspectionModal, setShowInspectionModal] = useState(false);
-  const [inspectionSuccess, setInspectionSuccess] = useState(false);
   const [showConcierge, setShowConcierge] = useState(false);
+  const [cartAddedToast, setCartAddedToast] = useState(false);
+  const [cep, setCep] = useState('');
+  const [freightResult, setFreightResult] = useState<string | null>(null);
 
   const [modalData, setModalData] = useState<{
     isOpen: boolean;
     imageUrl: string;
+    mediaType?: 'image' | 'video';
     title: string;
     subtitle?: string;
   }>({
     isOpen: false,
     imageUrl: '',
+    mediaType: 'image',
     title: '',
     subtitle: '',
   });
-
-  const handleIncrement = (amount: number) => {
-    setBidValue((prev) => prev + amount);
-  };
 
   const handleDownloadPdf = () => {
     setDownloadingReport(true);
@@ -85,10 +348,31 @@ export default function ProductPage() {
     }, 1500);
   };
 
-  const openImage = (imageUrl: string, title: string, subtitle?: string) => {
+  const handleAddToCart = () => {
+    if (isSold) return;
+    setCartAddedToast(true);
+    setTimeout(() => setCartAddedToast(false), 3500);
+  };
+
+  const handleCalcFreight = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cep.length >= 8) {
+      setFreightResult('Transporte Blindado Especial: Grátis (Prazo estimado: 2 a 4 dias úteis com escolta armada e seguro total Lloyd\'s)');
+    } else {
+      setFreightResult('Por favor, digite um CEP válido com 8 dígitos.');
+    }
+  };
+
+  const openImage = (
+    imageUrl: string,
+    title: string,
+    subtitle?: string,
+    mediaType: 'image' | 'video' = 'image'
+  ) => {
     setModalData({
       isOpen: true,
       imageUrl,
+      mediaType,
       title,
       subtitle,
     });
@@ -100,262 +384,455 @@ export default function ProductPage() {
       <RelayBar />
 
       {/* Main Top Institutional Nav Bar */}
-      <Navbar />
+      <Navbar cartCount={cartAddedToast ? 2 : 1} />
 
-      {/* Breadcrumbs & Metadata Bar */}
-      <div className="bg-[#12151B] border-b border-[#282E3A] py-3 px-4 sm:px-6 md:px-12">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-['Space_Grotesk']">
-          <nav aria-label="Trilha de Auditoria" className="flex items-center gap-2 text-[#9CA3AF]">
-            <Link href="/" className="hover:text-[#E5C875] transition-colors">
-              Início
-            </Link>
-            <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <Link href="/catalog" className="hover:text-[#E5C875] transition-colors">
-              Futebol Histórico
-            </Link>
-            <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <span className="text-[#F4F1EA]">Copa de 1970 México</span>
-            <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <span className="text-[#f2ca50] font-semibold">Lote Soberano #PEL-1970-MEX</span>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#08090B] border border-[#10B981]/50 text-[#10B981] text-[11px] rounded font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-              AUTENTICIDADE HISTÓRICA GRAU MÁXIMO
-            </span>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[#9CA3AF]">
-              <span className="material-symbols-outlined text-sm">schedule</span>
-              FECHAMENTO DO ESCROW: 03D 14H 22M
-            </span>
-          </div>
+      {/* Breadcrumb de Navegação */}
+      <nav className="w-full bg-[#12151B] border-b border-[#282E3A] px-4 sm:px-6 py-2.5 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+        <div className="max-w-7xl mx-auto flex items-center gap-2">
+          <Link href="/" className="hover:text-[#f2ca50] transition-colors">
+            Início
+          </Link>
+          <span>/</span>
+          <Link href="/catalog" className="hover:text-[#f2ca50] transition-colors">
+            Catálogo de Relíquias
+          </Link>
+          <span>/</span>
+          <span className="text-[#F4F1EA] truncate">
+            {product.title}
+          </span>
         </div>
-      </div>
+      </nav>
 
-      {/* MAIN VIEWPORT (2 COLUMNS) */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT COLUMN: FORENSIC OPTICAL VIEWPORT & SPECIMEN GALLERY (7 Col) */}
-          <section className="lg:col-span-7 flex flex-col gap-6">
-            {/* Viewport Box */}
-            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg relative overflow-hidden group shadow-2xl">
-              {/* Top Viewport Header */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1E26] border-b border-[#282E3A]">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#f2ca50] text-base">
-                    center_focus_strong
+      {/* Notificação Toast de Adicionado ao Carrinho */}
+      {cartAddedToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#1A1E26] border border-[#10B981] text-[#F4F1EA] px-5 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-fadeIn">
+          <span className="material-symbols-outlined text-[#10B981] text-2xl">check_circle</span>
+          <div>
+            <p className="font-bold text-xs font-['Space_Grotesk']">Produto Adicionado ao Carrinho!</p>
+            <p className="text-[11px] text-[#9CA3AF]">{product.title} reservada com sucesso.</p>
+          </div>
+          <Link
+            href="/checkout"
+            className="ml-3 px-3 py-1.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-bold font-['Space_Grotesk'] rounded"
+          >
+            Finalizar Compra
+          </Link>
+        </div>
+      )}
+
+      {/* Alerta de Produto Vendido */}
+      {isSold && (
+        <div className="w-full bg-red-950/80 border-b border-red-500/60 py-3 px-4 text-center">
+          <p className="text-xs sm:text-sm font-['Space_Grotesk'] text-red-300 font-bold flex items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-base">lock</span>
+            ESTA PEÇA HISTÓRICA JÁ FOI VENDIDA E NÃO ESTÁ MAIS DISPONÍVEL PARA AQUISIÇÃO.
+          </p>
+        </div>
+      )}
+
+      {/* Main Product Layout */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-12 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* Left Column: Visual Spectrometry & Inspection System */}
+          <section className="lg:col-span-7 space-y-5">
+            {/* Visualizer Frame */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg overflow-hidden shadow-2xl relative">
+              {/* Top Viewport Header com Suíte Forense Completa */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-[#1A1E26] border-b border-[#282E3A] gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                  <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] tracking-wide uppercase">
+                    Microscópio Forense 10K
                   </span>
-                  <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] tracking-widest font-semibold uppercase">
-                    INSPEÇÃO ÓPTICA FORENSE · RESOLUÇÃO 8K ULTRA-MACRO
+                  <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] bg-[#08090B] px-2 py-0.5 rounded border border-[#282E3A]">
+                    <span className={`w-1.5 h-1.5 rounded-full ${hdReady ? 'bg-[#10B981]' : 'bg-[#f2ca50]'}`} />
+                    {hdReady ? 'HD 2400px Carregado' : 'Carregamento sob Demanda'}
                   </span>
                 </div>
-                <button
-                  onClick={() => openImage(activeAngle.url, activeAngle.label, activeAngle.desc)}
-                  className="px-2 py-0.5 text-[10px] font-['Space_Grotesk'] bg-[#08090B] border border-[#282E3A] hover:border-[#f2ca50] text-[#E5C875] rounded flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-xs">open_in_new</span>
-                  <span>Link Direto HTML</span>
-                </button>
-              </div>
 
-              {/* Main Image with Macro Reticle Overlay */}
-              <div className="relative w-full aspect-[4/3] bg-[#08090B] flex items-center justify-center overflow-hidden">
-                <img
-                  src={activeAngle.url}
-                  alt={activeAngle.desc}
-                  style={{
-                    transform:
-                      magnification === '1.0x'
-                        ? 'scale(1)'
-                        : magnification === '4.5x'
-                        ? 'scale(1.35)'
-                        : 'scale(1.85)',
-                    filter:
-                      lightFilter === 'uv'
-                        ? 'hue-rotate(180deg) saturate(1.8) contrast(1.2)'
-                        : lightFilter === 'raking'
-                        ? 'contrast(1.4) brightness(0.9)'
-                        : 'none',
-                    transition: 'all 0.4s ease-out',
-                  }}
-                  className="w-full h-full object-cover select-none cursor-pointer"
-                  onClick={() => openImage(activeAngle.url, activeAngle.label, activeAngle.desc)}
-                />
-
-                {/* Macro Reticle & Coordinates Overlay */}
-                <div className="absolute inset-0 pointer-events-none p-4 sm:p-6 flex flex-col justify-between macro-reticle">
-                  <div className="flex justify-between items-start">
-                    <div className="bg-[#08090B]/85 backdrop-blur-md border border-[#282E3A] p-2 rounded text-[11px] font-['Space_Grotesk'] space-y-0.5">
-                      <div className="text-[#E5C875]">COORD: 19°18&apos;10.4&quot;N / 99°09&apos;01.5&quot;W</div>
-                      <div className="text-[#9CA3AF]">FOCO: TINTA NANKIN CALIGRÁFICA #10</div>
-                      <div className="text-[#10B981] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">check_circle</span>
-                        SEM ADULTERAÇÃO DE PIGMENTO
-                      </div>
-                    </div>
-
-                    <div className="bg-[#08090B]/85 backdrop-blur-md border border-[#282E3A] px-2.5 py-1 rounded flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping"></span>
-                      <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold">
-                        {magnification === '1.0x'
-                          ? '1.0X PANORÂMICA'
-                          : magnification === '4.5x'
-                          ? '4.5X ÓPTICO CONVERGENTE'
-                          : '8K ULTRA-MICROESPECTRO'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Center Forensic Reticle */}
-                  <div className="self-center flex flex-col items-center opacity-40 group-hover:opacity-80 transition-opacity">
-                    <div className="w-24 h-24 border border-dashed border-[#E5C875]/60 rounded-full flex items-center justify-center relative">
-                      <div className="w-2 h-2 bg-[#f2ca50] rounded-full"></div>
-                      <span className="absolute -top-3 text-[9px] font-['Space_Grotesk'] text-[#E5C875] bg-[#08090B] px-1 rounded">
-                        TRAÇO ORIGINAL
-                      </span>
-                      <div className="absolute w-full h-[1px] bg-[#E5C875]/40"></div>
-                      <div className="absolute h-full w-[1px] bg-[#E5C875]/40"></div>
-                    </div>
-                  </div>
-
-                  {/* Bottom Tags */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-[#08090B]/90 border border-[#282E3A] text-[10px] font-['Space_Grotesk'] text-[#F4F1EA] rounded">
-                        Fibra: 100% Algodão 1970
-                      </span>
-                      <span className="px-2 py-0.5 bg-[#08090B]/90 border border-[#282E3A] text-[10px] font-['Space_Grotesk'] text-[#E5C875] rounded">
-                        Espectro de Tinta Nankin Original
-                      </span>
-                    </div>
-                    <div className="px-2 py-0.5 bg-[#08090B]/90 border border-[#282E3A] text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] rounded">
-                      DELTA-E: 0.04 (CALIBRADO)
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Viewport Control Bar: Magnification and Lighting Filter Toggles */}
-              <div className="p-3 sm:p-4 bg-[#12151B] border-t border-[#282E3A] flex flex-wrap items-center justify-between gap-3 text-xs font-['Space_Grotesk']">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[#9CA3AF] mr-1 uppercase">AMPLIAÇÃO:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Botão de Destaque Pericial: Foco na Assinatura */}
                   <button
-                    onClick={() => setMagnification('1.0x')}
-                    className={`px-3 py-1 rounded transition-colors ${
-                      magnification === '1.0x'
-                        ? 'bg-[#f2ca50] text-[#08090B] font-bold'
-                        : 'bg-[#1A1E26] text-[#9CA3AF] hover:text-[#E5C875] border border-[#282E3A]'
-                    }`}
+                    onClick={handleFocusSignature}
+                    className="px-3 py-1.5 rounded text-xs font-['Space_Grotesk'] font-bold flex items-center gap-1.5 bg-gradient-to-r from-[#C59B27] to-[#f2ca50] text-[#08090B] shadow-[0_0_15px_rgba(242,202,80,0.35)] hover:brightness-110 transition-all"
+                    title="Focar imediatamente no autógrafo original com zoom de alta precisão 8x"
                   >
-                    1.0x Panorâmica
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                    <span>Foco na Assinatura (8x)</span>
                   </button>
-                  <button
-                    onClick={() => setMagnification('4.5x')}
-                    className={`px-3 py-1 rounded transition-colors ${
-                      magnification === '4.5x'
-                        ? 'bg-[#f2ca50] text-[#08090B] font-bold'
-                        : 'bg-[#1A1E26] text-[#9CA3AF] hover:text-[#E5C875] border border-[#282E3A]'
-                    }`}
-                  >
-                    4.5x Assinatura
-                  </button>
-                  <button
-                    onClick={() => setMagnification('8k')}
-                    className={`px-3 py-1 rounded transition-colors ${
-                      magnification === '8k'
-                        ? 'bg-[#f2ca50] text-[#08090B] font-bold'
-                        : 'bg-[#1A1E26] text-[#9CA3AF] hover:text-[#E5C875] border border-[#282E3A]'
-                    }`}
-                  >
-                    8K Microespectro
-                  </button>
-                </div>
 
-                <div className="flex items-center gap-1.5">
+                  {/* Seletor de Modo da Lupa */}
+                  {currentMedia.type !== 'video' && (
+                    <div className="flex items-center bg-[#08090B] border border-[#282E3A] rounded overflow-hidden text-[11px] font-['Space_Grotesk']">
+                      <button
+                        onClick={() => {
+                          setIsStageLupaActive(true);
+                          setLupaMode('lens');
+                        }}
+                        className={`px-2.5 py-1 flex items-center gap-1 transition-colors ${
+                          isStageLupaActive && lupaMode === 'lens'
+                            ? 'bg-[#f2ca50] text-[#08090B] font-bold'
+                            : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                        }`}
+                        title={`Lente óptica ampliada (${lensDiameter}px) com rastreamento milimétrico do mouse`}
+                      >
+                        <span className="material-symbols-outlined text-xs">adjust</span>
+                        <span>Lente {lensDiameter}px</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsStageLupaActive(true);
+                          setLupaMode('flyout');
+                        }}
+                        className={`px-2.5 py-1 hidden md:flex items-center gap-1 transition-colors ${
+                          isStageLupaActive && lupaMode === 'flyout'
+                            ? 'bg-[#f2ca50] text-[#08090B] font-bold'
+                            : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                        }`}
+                        title="Janela lateral Flyout de 520px com inspeção ultra-HD"
+                      >
+                        <span className="material-symbols-outlined text-xs">open_in_new</span>
+                        <span>Flyout 520px</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsStageLupaActive(true);
+                          setLupaMode('pan');
+                        }}
+                        className={`px-2.5 py-1 flex items-center gap-1 transition-colors ${
+                          isStageLupaActive && lupaMode === 'pan'
+                            ? 'bg-[#f2ca50] text-[#08090B] font-bold'
+                            : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                        }`}
+                        title="Mesa de Luz com scroll do mouse e clique/arraste para explorar"
+                      >
+                        <span className="material-symbols-outlined text-xs">pan_tool</span>
+                        <span>Mesa de Luz</span>
+                      </button>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => setLightFilter(lightFilter === 'uv' ? 'normal' : 'uv')}
-                    className={`p-1.5 rounded border transition-colors ${
-                      lightFilter === 'uv'
-                        ? 'bg-[#10B981] text-[#08090B] border-[#10B981]'
-                        : 'bg-[#1A1E26] text-[#9CA3AF] border-[#282E3A] hover:text-[#f2ca50]'
-                    }`}
-                    title="Luz UV Espectral"
-                  >
-                    <span className="material-symbols-outlined text-base">wb_iridescent</span>
-                  </button>
-                  <button
-                    onClick={() => setLightFilter(lightFilter === 'raking' ? 'normal' : 'raking')}
-                    className={`p-1.5 rounded border transition-colors ${
-                      lightFilter === 'raking'
-                        ? 'bg-[#E5C875] text-[#08090B] border-[#E5C875]'
-                        : 'bg-[#1A1E26] text-[#9CA3AF] border-[#282E3A] hover:text-[#f2ca50]'
-                    }`}
-                    title="Iluminação Rasante"
-                  >
-                    <span className="material-symbols-outlined text-base">exposure</span>
-                  </button>
-                  <button
-                    onClick={() => openImage(activeAngle.url, activeAngle.label, activeAngle.desc)}
-                    className="p-1.5 rounded bg-[#1A1E26] border border-[#282E3A] text-[#9CA3AF] hover:text-[#f2ca50] transition-colors"
-                    title="Modo Ecrã Completo 8K"
+                    onClick={() =>
+                      openImage(currentMedia.url, currentMedia.label, currentMedia.desc, currentMedia.type)
+                    }
+                    className="p-1.5 bg-[#08090B] hover:bg-[#f2ca50] hover:text-[#08090B] text-[#F4F1EA] rounded border border-[#282E3A] text-xs transition-colors flex items-center gap-1"
+                    title="Expandir Mídia em Tela Cheia (88% do Viewport)"
                   >
                     <span className="material-symbols-outlined text-base">fullscreen</span>
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Specimen Angle Thumbnails */}
-            <div>
-              <div className="flex items-center justify-between mb-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
-                <span>ÂNGULOS FORENSES DE INSPEÇÃO (CLIQUE PARA ALTERNAR):</span>
-                <span className="text-[#E5C875] font-semibold">{activeAngle.label}</span>
+              {/* Barra Secundária de Níveis de Zoom (Até 10x / 1000%) e Diâmetro da Lente */}
+              {currentMedia.type !== 'video' && (
+                <div className="px-4 py-2 bg-[#12151B] border-b border-[#282E3A] flex flex-wrap items-center justify-between gap-3 text-xs font-['Space_Grotesk']">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] text-[#9CA3AF] uppercase font-semibold">Nível de Zoom:</span>
+                    <div className="flex items-center bg-[#08090B] border border-[#282E3A] rounded overflow-hidden">
+                      {[
+                        { val: 2.0, label: '2x' },
+                        { val: 3.5, label: '3.5x' },
+                        { val: 5.0, label: '5x' },
+                        { val: 8.0, label: '8x (Perícia)' },
+                        { val: 10.0, label: '10x (Ultra-Macro)' },
+                      ].map((item) => (
+                        <button
+                          key={item.val}
+                          onClick={() => {
+                            setZoomScale(item.val);
+                            if (lupaMode === 'pan') {
+                              setPanState((p) => ({ ...p, zoom: item.val }));
+                            }
+                          }}
+                          className={`px-2 py-1 transition-colors ${
+                            zoomScale === item.val
+                              ? 'bg-[#f2ca50] text-[#08090B] font-bold'
+                              : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                          }`}
+                          title={`Ampliação de ${item.val}x (${Math.round(item.val * 100)}%)`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Seletor de Tamanho da Lente (Diâmetro) quando em modo Lente */}
+                    {lupaMode === 'lens' && isStageLupaActive && (
+                      <div className="flex items-center gap-1.5 ml-1 sm:ml-3">
+                        <span className="text-[10px] text-[#9CA3AF] uppercase font-semibold">Tamanho da Lente:</span>
+                        <div className="flex items-center bg-[#08090B] border border-[#282E3A] rounded overflow-hidden">
+                          {[
+                            { size: 220, label: 'P (220px)' },
+                            { size: 300, label: 'M (300px)' },
+                            { size: 380, label: 'G (380px)' },
+                            { size: 460, label: 'XL (460px)' },
+                          ].map((item) => (
+                            <button
+                              key={item.size}
+                              onClick={() => setLensDiameter(item.size)}
+                              className={`px-2 py-1 transition-colors ${
+                                lensDiameter === item.size
+                                  ? 'bg-[#f2ca50] text-[#08090B] font-bold'
+                                  : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                              }`}
+                              title={`Ajustar diâmetro da lente para ${item.size}px (ou segure Shift + gire a roda do mouse)`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Slider Contínuo de Zoom (1.5x a 10.0x) */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-[#9CA3AF]">Ajuste Fino:</span>
+                    <input
+                      type="range"
+                      min="1.5"
+                      max="10.0"
+                      step="0.5"
+                      value={zoomScale}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setZoomScale(val);
+                        if (lupaMode === 'pan') {
+                          setPanState((p) => ({ ...p, zoom: val }));
+                        }
+                      }}
+                      className="w-24 sm:w-32 accent-[#f2ca50] cursor-pointer"
+                      title="Deslize para controle contínuo de ampliação"
+                    />
+                    <span className="text-xs font-bold text-[#f2ca50] w-12 text-right">
+                      {zoomScale.toFixed(1)}x
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Main Media Stage com Suporte Óptico em Pixels Reais e Modo Mesa de Luz */}
+              <div
+                ref={stageContainerRef}
+                onMouseEnter={handleStageMouseEnter}
+                onMouseMove={handleStageMouseMove}
+                onMouseLeave={handleStageMouseLeave}
+                onWheel={handleStageWheel}
+                className="relative aspect-[4/3] bg-[#08090B] flex items-center justify-center overflow-hidden select-none"
+              >
+                {currentMedia.type === 'video' ? (
+                  <video
+                    src={currentMedia.url}
+                    controls
+                    autoPlay
+                    className="max-h-full max-w-full object-contain rounded"
+                  />
+                ) : lupaMode === 'pan' ? (
+                  /* MODO MESA DE LUZ: PAN & DRAG + WHEEL ZOOM (1x a 12x) */
+                  <div
+                    className="w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing relative overflow-hidden"
+                    onMouseDown={(e) => {
+                      setPanState((prev) => ({
+                        ...prev,
+                        isDragging: true,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                      }));
+                    }}
+                    onMouseUp={() => setPanState((prev) => ({ ...prev, isDragging: false }))}
+                  >
+                    <img
+                      ref={stageImgRef}
+                      src={currentMedia.url}
+                      alt={currentMedia.desc}
+                      style={{
+                        transform: `translate(${panState.panX}px, ${panState.panY}px) scale(${panState.zoom})`,
+                        transition: panState.isDragging ? 'none' : 'transform 0.1s ease-out',
+                      }}
+                      className="max-h-full max-w-full object-contain select-none pointer-events-none"
+                    />
+
+                    {/* Controles Flutuantes da Mesa de Luz */}
+                    <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-[#08090B]/90 border border-[#282E3A] p-1.5 rounded-lg backdrop-blur-md z-30 shadow-2xl">
+                      <button
+                        onClick={() => setPanState((p) => ({ ...p, zoom: Math.max(1, p.zoom - 1) }))}
+                        className="w-6 h-6 flex items-center justify-center rounded bg-[#12151B] text-[#9CA3AF] hover:text-[#f2ca50] transition-colors"
+                        title="Reduzir Zoom (-)"
+                      >
+                        <span className="material-symbols-outlined text-sm">remove</span>
+                      </button>
+                      <span className="text-xs font-['Space_Grotesk'] text-[#f2ca50] font-bold px-1 min-w-[40px] text-center">
+                        {panState.zoom.toFixed(1)}x
+                      </span>
+                      <button
+                        onClick={() => setPanState((p) => ({ ...p, zoom: Math.min(12, p.zoom + 1) }))}
+                        className="w-6 h-6 flex items-center justify-center rounded bg-[#12151B] text-[#9CA3AF] hover:text-[#f2ca50] transition-colors"
+                        title="Aumentar Zoom (+)"
+                      >
+                        <span className="material-symbols-outlined text-sm">add</span>
+                      </button>
+                      <button
+                        onClick={() => setPanState({ zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 })}
+                        className="px-2 py-0.5 rounded bg-[#12151B] text-[#9CA3AF] hover:text-[#F4F1EA] text-[10px] font-['Space_Grotesk'] border-l border-[#282E3A] ml-1 transition-colors"
+                        title="Restaurar Posição e Zoom Inicial (1x)"
+                      >
+                        Reset
+                      </button>
+                    </div>
+
+                    <div className="absolute top-3 left-3 bg-[#08090B]/85 border border-[#282E3A] px-2.5 py-1 rounded text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] backdrop-blur-sm pointer-events-none">
+                      🖐️ Clique e arraste para explorar • Gire a roda do mouse para ampliar até 12x
+                    </div>
+                  </div>
+                ) : (
+                  /* MODO NORMAL: FOTO BASE COM LUPA ÓPTICA PIXEL-EXACT OU FLYOUT */
+                  <div className="w-full h-full flex items-center justify-center relative cursor-crosshair">
+                    <img
+                      ref={stageImgRef}
+                      src={currentMedia.url}
+                      alt={currentMedia.desc}
+                      className="max-h-full max-w-full object-contain select-none pointer-events-none"
+                    />
+
+                    {/* MODO 1: LUPA ÓPTICA MILIMÉTRICA COM TAMANHO EXPANDIDO */}
+                    {isStageLupaActive && lupaMode === 'lens' && stageLensPos.visible && (
+                      <div
+                        className="absolute pointer-events-none rounded-full border-2 border-[#f2ca50] shadow-[0_0_50px_rgba(0,0,0,0.95),0_0_25px_rgba(242,202,80,0.6)] z-40 overflow-hidden"
+                        style={{
+                          width: lensDiameter,
+                          height: lensDiameter,
+                          left: stageLensPos.x - lensDiameter / 2,
+                          top: stageLensPos.y - lensDiameter / 2,
+                          backgroundImage: `url(${currentMedia.url})`,
+                          backgroundSize: `${stageLensPos.bgWidth}px ${stageLensPos.bgHeight}px`,
+                          backgroundPosition: `${stageLensPos.bgPosX}px ${stageLensPos.bgPosY}px`,
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      >
+                        {/* Mira Reticular Forense no Ponto Central */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full border border-[#f2ca50]/50 flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#f2ca50] shadow" />
+                          </div>
+                          <div className="absolute w-full h-[1px] bg-[#f2ca50]/20 pointer-events-none" />
+                          <div className="absolute h-full w-[1px] bg-[#f2ca50]/20 pointer-events-none" />
+                        </div>
+                        <div className="absolute bottom-2.5 inset-x-0 text-center">
+                          <span className="bg-[#08090B]/90 border border-[#f2ca50]/70 text-[#f2ca50] text-[10px] font-['Space_Grotesk'] font-bold px-2.5 py-0.5 rounded shadow">
+                            LUPA {zoomScale.toFixed(1)}X • ⌀{lensDiameter}px
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MODO 2: RETÍCULO DELIMITADOR NA FOTO QUANDO EM MODO FLYOUT */}
+                    {isStageLupaActive && lupaMode === 'flyout' && stageLensPos.visible && (
+                      <div
+                        className="absolute pointer-events-none border-2 border-[#f2ca50] bg-[#f2ca50]/15 shadow-[0_0_20px_rgba(242,202,80,0.4)] rounded-md z-30 flex items-center justify-center"
+                        style={{
+                          width: 140,
+                          height: 140,
+                          left: Math.max(0, stageLensPos.x - 70),
+                          top: Math.max(0, stageLensPos.y - 70),
+                        }}
+                      >
+                        <span className="material-symbols-outlined text-sm text-[#f2ca50]">center_focus_strong</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Overlay Badge */}
+                <div className="absolute bottom-3 left-3 bg-[#08090B]/85 border border-[#282E3A] px-3 py-1.5 rounded text-[11px] font-['Space_Grotesk'] text-[#F4F1EA] backdrop-blur-sm flex items-center gap-2 pointer-events-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5C875]"></span>
+                  <span>
+                    {currentMedia.badge}: {currentMedia.label}
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                {specimenAngles.map((angle) => {
-                  const isSelected = activeAngle.id === angle.id;
-                  return (
-                    <div
-                      key={angle.id}
-                      onClick={() => setActiveAngle(angle)}
-                      className={`cursor-pointer bg-[#12151B] rounded p-1.5 transition-all group ${
-                        isSelected
-                          ? 'border-2 border-[#f2ca50] bg-[#1A1E26]'
-                          : 'border border-[#282E3A] hover:border-[#C59B27]'
-                      }`}
-                    >
-                      <div className="w-full aspect-square bg-[#08090B] rounded overflow-hidden relative">
-                        <img
-                          src={angle.url}
-                          alt={angle.label}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute bottom-1 right-1 text-[8px] font-['Space_Grotesk'] bg-[#08090B]/90 text-[#E5C875] px-1 rounded">
-                          {angle.badge}
+              {/* MODO 2 FLYOUT: Janela Lateral Flutuante de 520x520px com Cálculo Óptico em Pixels */}
+              {isStageLupaActive && lupaMode === 'flyout' && stageLensPos.visible && currentMedia.type !== 'video' && (
+                <div className="absolute top-0 -right-[535px] w-[520px] h-[520px] bg-[#08090B] border-2 border-[#f2ca50] rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.95)] overflow-hidden hidden xl:flex flex-col z-50 pointer-events-none animate-fadeIn">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1E26] border-b border-[#282E3A]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                      <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase tracking-wide">
+                        Inspeção Forense Ultra-HD • {zoomScale.toFixed(1)}x ({Math.round(zoomScale * 100)}%)
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-['Space_Grotesk'] text-[#f2ca50] bg-[#f2ca50]/10 border border-[#f2ca50]/30 px-2 py-0.5 rounded font-bold">
+                      Pixel-Exact 2400px
+                    </span>
+                  </div>
+
+                  <div
+                    className="flex-1 bg-[#08090B] relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${currentMedia.url})`,
+                      backgroundSize: `${stageLensPos.bgWidth}px ${stageLensPos.bgHeight}px`,
+                      backgroundPosition: `${stageLensPos.flyoutBgPosX}px ${stageLensPos.flyoutBgPosY}px`,
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full border border-[#f2ca50]/40 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-[#f2ca50] shadow" />
+                      </div>
+                      <div className="absolute w-full h-[1px] bg-[#f2ca50]/20 pointer-events-none" />
+                      <div className="absolute h-full w-[1px] bg-[#f2ca50]/20 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Media Gallery Thumbnails */}
+              <div className="p-4 bg-[#1A1E26] border-t border-[#282E3A] flex items-center gap-3 overflow-x-auto custom-scrollbar">
+                {galleryItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveMedia(item)}
+                    className={`shrink-0 w-20 h-20 rounded border overflow-hidden relative transition-all ${
+                      currentMedia.id === item.id
+                        ? 'border-[#f2ca50] shadow-[0_0_10px_rgba(242,202,80,0.3)] ring-1 ring-[#f2ca50]'
+                        : 'border-[#282E3A] opacity-65 hover:opacity-100'
+                    }`}
+                  >
+                    {item.type === 'video' ? (
+                      <div className="w-full h-full bg-black flex items-center justify-center relative">
+                        <video src={item.url} className="w-full h-full object-cover opacity-60" />
+                        <span className="material-symbols-outlined text-2xl text-[#f2ca50] absolute">
+                          play_circle
                         </span>
                       </div>
-                      <p className="text-[10px] font-['Space_Grotesk'] text-[#F4F1EA] truncate mt-1 text-center">
-                        {angle.label}
-                      </p>
-                    </div>
-                  );
-                })}
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.label}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <span className="absolute bottom-0 inset-x-0 bg-[#08090B]/90 text-[9px] font-['Space_Grotesk'] text-center py-0.5 text-[#F4F1EA] truncate px-1">
+                      {item.badge}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Forensic Safeguard Status & Download PDF button */}
-            <div className="p-4 bg-[#12151B] border border-[#282E3A] rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Certificação & Laudo Forense */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded bg-[#08090B] border border-[#282E3A] flex items-center justify-center text-[#E5C875] shrink-0">
-                  <span className="material-symbols-outlined text-xl">enhanced_encryption</span>
+                <div className="w-10 h-10 rounded bg-[#08090B] border border-[#C59B27] flex items-center justify-center text-[#f2ca50] shrink-0">
+                  <span className="material-symbols-outlined text-2xl">verified</span>
                 </div>
                 <div>
-                  <p className="text-xs font-['Space_Grotesk'] text-[#E5C875] font-bold">
-                    REGISTRO DE SALVAGUARDA FORENSE ATIVO
-                  </p>
-                  <p className="text-xs font-['Manrope'] text-[#9CA3AF]">
-                    Amostras de tecido micro-espectrais coincidem 100% com o padrão oficial da CBD de 21 de junho de 1970.
+                  <h4 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase">
+                    Certificado de Autenticidade Vitalício #COA-9801
+                  </h4>
+                  <p className="text-[11px] text-[#9CA3AF] font-['Manrope']">
+                    Laudo pericial com espectrometria molecular e correspondência fotográfica do jogo.
                   </p>
                 </div>
               </div>
@@ -363,587 +840,307 @@ export default function ProductPage() {
               <button
                 onClick={handleDownloadPdf}
                 disabled={downloadingReport}
-                className="whitespace-nowrap px-4 py-2 bg-[#1A1E26] hover:bg-[#282a2d] border border-[#282E3A] hover:border-[#f2ca50] text-[#F4F1EA] text-xs font-['Space_Grotesk'] rounded transition-colors flex items-center gap-1.5 shrink-0"
+                className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#C59B27] text-[#f2ca50] text-xs font-['Space_Grotesk'] font-semibold rounded flex items-center gap-1.5 transition-colors shrink-0"
               >
-                <span className="material-symbols-outlined text-base text-[#C59B27]">
-                  {downloadingReport ? 'sync' : reportDownloaded ? 'check_circle' : 'download'}
+                <span className="material-symbols-outlined text-base">
+                  {downloadingReport ? 'hourglass_top' : reportDownloaded ? 'check' : 'download'}
                 </span>
                 <span>
                   {downloadingReport
                     ? 'Gerando Laudo...'
                     : reportDownloaded
                     ? 'Laudo Baixado!'
-                    : 'Baixar Relatório Forense (.PDF 48MB)'}
+                    : 'Baixar Laudo Oficial (PDF)'}
                 </span>
               </button>
             </div>
           </section>
 
-          {/* RIGHT COLUMN: ACQUISITION DOSSIER & ESCROW BID CARD (5 Col) */}
-          <section className="lg:col-span-5 flex flex-col gap-6">
-            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-6 relative overflow-hidden shadow-2xl">
-              {/* Subtle ambient light */}
-              <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#f2ca50]/5 rounded-full blur-3xl pointer-events-none"></div>
-
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="px-2.5 py-1 bg-[#08090B] border border-[#C59B27]/50 text-[#E5C875] text-[10px] font-['Space_Grotesk'] rounded flex items-center gap-1 font-semibold">
-                  <span className="material-symbols-outlined text-xs">stars</span>
-                  LOTE SOBERANO #001
-                </span>
-                <span className="px-2.5 py-1 bg-[#08090B] border border-[#10B981]/50 text-[#10B981] text-[10px] font-['Space_Grotesk'] rounded flex items-center gap-1 font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                  GRAU 9.8 ARCHIVAL
-                </span>
-                <span className="px-2.5 py-1 bg-[#1A1E26] border border-[#282E3A] text-[#F4F1EA] text-[10px] font-['Space_Grotesk'] rounded">
-                  COA INVIOLÁVEL #COA-9801
-                </span>
-              </div>
-
-              {/* Title */}
-              <h1 className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#F4F1EA] leading-tight mb-2.5">
-                Edson Arantes do Nascimento (Pelé) — Manto Final da Copa de 1970 (Brasil 4 x 1 Itália)
-              </h1>
-
-              <p className="text-xs font-['Manrope'] text-[#9CA3AF] mb-5 leading-relaxed">
-                Exemplar histórico utilizado no segundo tempo da consagração do Tricampeonato Mundial no Estádio Azteca. Apresenta numeração #10 aveludada original e dedicatória assinada na concentração.
-              </p>
-
-              {/* Cryptographic block */}
-              <div className="bg-[#08090B] border border-[#282E3A] rounded p-3 mb-5 space-y-2 text-xs font-['Space_Grotesk']">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#9CA3AF] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm text-[#f2ca50]">token</span>
-                    HASH BLOCKCHAIN SHA-256:
-                  </span>
-                  <span className="text-[#E5C875] font-mono truncate max-w-[180px]">
-                    0x7f83b165...126d9069
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-[#9CA3AF] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm text-[#10B981]">verified</span>
-                    APÓLICE LLOYD&apos;S SYNDICATE:
-                  </span>
-                  <span className="text-[#F4F1EA] font-semibold">#LL-BR70-98402 (COBERTURA TOTAL)</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-[#9CA3AF] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm text-[#9CA3AF]">warehouse</span>
-                    CUSTÓDIA FÍSICA:
-                  </span>
-                  <span className="text-[#9CA3AF]">Cofre Alta Segurança Genebra (Freeport)</span>
-                </div>
-              </div>
-
-              {/* Valuation */}
-              <div className="border-t border-b border-[#282E3A] py-4 mb-5">
-                <div className="flex items-baseline justify-between mb-1">
-                  <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] tracking-wider uppercase font-semibold">
-                    Valor Fiduciário em Escrow
-                  </span>
-                  <span className="text-[10px] font-['Space_Grotesk'] text-[#10B981] font-bold uppercase">
-                    RESERVA SUPERADA
-                  </span>
-                </div>
-
-                <div className="flex items-baseline gap-3">
-                  <span className="text-2xl sm:text-3xl font-['Playfair_Display'] font-bold text-[#f2ca50]">
-                    R$ 4.850.000
-                  </span>
-                  <span className="font-['Space_Grotesk'] text-sm text-[#9CA3AF] font-normal">
-                    (USD $1,000,000)
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5 mt-2 text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                  <span className="material-symbols-outlined text-sm text-[#E5C875]">lock_clock</span>
-                  <span>Garantia de custódia blindada e liquidação direta em Smart Contract</span>
-                </div>
-              </div>
-
-              {/* Stepper increment */}
-              <div className="space-y-4 mb-5">
-                <div>
-                  <div className="flex justify-between items-center text-xs font-['Space_Grotesk'] mb-1.5">
-                    <label htmlFor="bid-input" className="text-[#F4F1EA] uppercase font-semibold">
-                      DEFINIR LANCE QUALIFICADO (INCREMENTO MÍN. R$ 50.000)
-                    </label>
-                    <span className="text-[#E5C875]">TAXA PREMIUM: 3.5%</span>
-                  </div>
-
-                  <div className="flex rounded border border-[#282E3A] bg-[#08090B] focus-within:border-[#f2ca50]">
-                    <span className="inline-flex items-center px-3.5 text-[#9CA3AF] font-['Space_Grotesk'] text-sm border-r border-[#282E3A]">
-                      R$
+          {/* Right Column: Commercial Details, Price & Buying Box */}
+          <section className="lg:col-span-5 space-y-6">
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-6 space-y-6">
+              {/* Product Header */}
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  {isSold ? (
+                    <span className="px-2.5 py-0.5 bg-red-950/90 border border-red-500 text-red-400 text-[11px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      {config.btnSoldOut || 'Peça Vendida'}
                     </span>
-                    <input
-                      id="bid-input"
-                      type="text"
-                      value={bidValue.toLocaleString('pt-BR') + ',00'}
-                      onChange={(e) => {
-                        const numeric = Number(e.target.value.replace(/\D/g, ''));
-                        if (!isNaN(numeric)) setBidValue(numeric);
-                      }}
-                      className="w-full bg-transparent border-none text-[#F4F1EA] font-['Space_Grotesk'] text-sm px-3 py-2.5 focus:outline-none"
-                    />
-                    <button
-                      onClick={() => handleIncrement(50000)}
-                      className="px-3 text-[#9CA3AF] hover:text-[#E5C875] font-['Space_Grotesk'] border-l border-[#282E3A] text-xs transition-colors"
-                    >
-                      +50K
-                    </button>
-                    <button
-                      onClick={() => handleIncrement(100000)}
-                      className="px-3 text-[#9CA3AF] hover:text-[#E5C875] font-['Space_Grotesk'] border-l border-[#282E3A] text-xs transition-colors"
-                    >
-                      +100K
-                    </button>
+                  ) : (
+                    <span className="px-2.5 py-0.5 bg-[#08090B] border border-[#10B981] text-[#10B981] text-[11px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                      {product?.statusLabel || 'Peça Única • Disponível'}
+                    </span>
+                  )}
+                  <span className="text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                    SKU: {product?.sku || 'SKU-OFICIAL'}
+                  </span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-['Playfair_Display'] font-bold text-[#F4F1EA] leading-tight">
+                  {product?.title || 'Relíquia Histórica'}
+                </h1>
+
+                <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-2 leading-relaxed">
+                  {product?.description || 'Item histórico autêntico preservado em cofre de alta segurança.'}
+                </p>
+              </div>
+
+              {/* Price & Installments Box in Reais */}
+              <div className="p-5 bg-[#08090B] border border-[#282E3A] rounded-lg space-y-3">
+                <div>
+                  <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] uppercase block">
+                    Preço Especial à Vista no PIX (5% OFF)
+                  </span>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl sm:text-4xl font-['Playfair_Display'] font-bold text-[#f2ca50]">
+                      R$ {((Number(product?.priceBRL) || 0) * 0.95).toLocaleString('pt-BR')},00
+                    </span>
+                    <span className="text-xs font-['Space_Grotesk'] text-[#10B981] font-bold bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/30">
+                      5% OFF
+                    </span>
                   </div>
                 </div>
 
-                {/* Primary Button */}
-                <Link
-                  href="/checkout"
-                  className="w-full block text-center py-3.5 px-6 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Manrope'] font-bold text-xs uppercase tracking-wider rounded transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)] flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">security</span>
-                  DAR LANCE EM ESCROW BLINDADO / ADQUIRIR CUSTÓDIA
-                </Link>
-
-                {/* Secondary Button */}
-                <button
-                  onClick={() => setShowInspectionModal(true)}
-                  className="w-full py-2.5 px-4 bg-[#1A1E26] hover:bg-[#282a2d] border border-[#C59B27]/60 hover:border-[#f2ca50] text-[#F4F1EA] font-['Manrope'] font-semibold text-xs rounded transition-all flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base text-[#E5C875]">
-                    event_seat
+                <div className="pt-2 border-t border-[#282E3A]/60 flex flex-col gap-1">
+                  <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA]">
+                    Ou <strong>R$ {(Number(product?.priceBRL) || 0).toLocaleString('pt-BR')},00</strong> em até <strong>12x de R$ {((Number(product?.priceBRL) || 0) / 12).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</strong> sem juros
                   </span>
-                  Agendar Inspeção Presencial em Genebra / São Paulo
+                  <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
+                    Aceitamos cartões de crédito alta renda (Visa Infinite, Mastercard Black, Amex Centurion) e Transferência Bancária / TED.
+                  </span>
+                </div>
+              </div>
+
+              {/* Buy Actions */}
+              <div className="space-y-3">
+                {isSold ? (
+                  <div className="p-4 bg-red-950/40 border border-red-800/60 rounded-lg text-center space-y-2">
+                    <span className="material-symbols-outlined text-3xl text-red-400">lock</span>
+                    <h4 className="text-xs font-bold text-red-300 font-['Space_Grotesk'] uppercase">
+                      Produto Indisponível para Compra
+                    </h4>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      Esta peça exclusiva já foi adquirida por um colecionador. Navegue pelo catálogo para conhecer outras peças disponíveis.
+                    </p>
+                    <Link
+                      href="/catalog"
+                      className="inline-block mt-2 px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-bold text-[#f2ca50] rounded"
+                    >
+                      Ver Outros Produtos Disponíveis
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      href="/checkout"
+                      className="w-full py-4 px-6 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(242,202,80,0.25)] flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-xl">shopping_cart_checkout</span>
+                      {config.btnBuyNow} com Frete Grátis
+                    </Link>
+
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full py-3 px-6 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#f2ca50]/50 hover:border-[#f2ca50] text-[#F4F1EA] font-['Space_Grotesk'] font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-lg text-[#f2ca50]">add_shopping_cart</span>
+                      {config.btnAddToCart}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Freight Simulator */}
+              <div className="pt-4 border-t border-[#282E3A] space-y-2.5">
+                <span className="text-xs font-['Space_Grotesk'] font-bold text-[#F4F1EA] uppercase flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm text-[#10B981]">local_shipping</span>
+                  Simulador de Frete e Entrega Blindada
+                </span>
+                <form onSubmit={handleCalcFreight} className="flex gap-2">
+                  <input
+                    type="text"
+                    maxLength={9}
+                    value={cep}
+                    onChange={(e) => setCep(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Digite seu CEP (ex: 01310-100)"
+                    className="flex-1 bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 focus:outline-none focus:border-[#f2ca50]"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] font-semibold text-[#F4F1EA] rounded transition-colors"
+                  >
+                    Calcular
+                  </button>
+                </form>
+                {freightResult && (
+                  <p className="text-xs font-['Space_Grotesk'] text-[#10B981] bg-[#10B981]/10 p-2.5 rounded border border-[#10B981]/20">
+                    {freightResult}
+                  </p>
+                )}
+              </div>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-2 gap-3 pt-2 text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">shield</span>
+                  <div>
+                    <strong className="text-[#F4F1EA] block text-[11px]">Seguro Total</strong>
+                    <span className="text-[10px]">Apólice Lloyd&apos;s</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#08090B] rounded border border-[#282E3A] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#10B981] text-lg">policy</span>
+                  <div>
+                    <strong className="text-[#F4F1EA] block text-[11px]">Garantia Vitalícia</strong>
+                    <span className="text-[10px]">Autenticidade Forense</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Concierge VIP */}
+              <div className="p-4 bg-gradient-to-r from-[#1A1E26] to-[#12151B] border border-[#C59B27]/40 rounded-lg flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[#f2ca50]">support_agent</span>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk']">
+                      Atendimento VIP &amp; Concierge
+                    </h5>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      Dúvidas sobre o produto ou agendamento de inspeção presencial.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowConcierge(!showConcierge)}
+                  className="px-3 py-1.5 bg-[#08090B] hover:bg-[#282E3A] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#f2ca50] rounded transition-colors shrink-0"
+                >
+                  Falar Agora
                 </button>
               </div>
 
-              <div className="pt-3 border-t border-[#282E3A] flex items-center justify-between text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[#10B981] text-sm">verified_user</span>
-                  <span>Custódia Brink&apos;s Global</span>
+              {showConcierge && (
+                <div className="p-4 bg-[#08090B] border border-[#C59B27] rounded-lg text-xs font-['Space_Grotesk'] space-y-2 animate-fadeIn">
+                  <p className="text-[#F4F1EA] font-bold">Canal Direto da Diretoria da Loja:</p>
+                  <p className="text-[#9CA3AF]">
+                    Telefone / WhatsApp VIP: <strong>{config.contactPhone}</strong>
+                  </p>
+                  <p className="text-[#9CA3AF]">
+                    E-mail Institucional: <strong>{config.contactEmail}</strong>
+                  </p>
+                  <p className="text-[10px] text-[#E5C875]">
+                    Atendimento reservado para clientes privados e colecionadores institucionais.
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[#E5C875] text-sm">balance</span>
-                  <span>Arbitragem CCI Paris</span>
-                </div>
-              </div>
+              )}
             </div>
 
-            {/* Concierge card */}
-            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#1A1E26] border border-[#282E3A] flex items-center justify-center text-[#f2ca50]">
-                  <span className="material-symbols-outlined">support_agent</span>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-[#F4F1EA]">
-                    Curador: Dr. Marcelo V. Soares
-                  </p>
-                  <p className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                    Mesa de Operações Fiduciárias
-                  </p>
-                </div>
+            {/* Product Specifications & Provenance Tabs */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg overflow-hidden">
+              <div className="flex border-b border-[#282E3A] bg-[#1A1E26]">
+                {[
+                  { id: 'provenance', label: 'História & Proveniência' },
+                  { id: 'specs', label: 'Ficha Técnica' },
+                  { id: 'shipping', label: 'Envio & Garantia' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex-1 py-3 text-xs font-['Space_Grotesk'] font-semibold text-center transition-colors ${
+                      activeTab === tab.id
+                        ? 'text-[#f2ca50] border-b-2 border-[#f2ca50] bg-[#12151B]'
+                        : 'text-[#9CA3AF] hover:text-[#F4F1EA]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-              <button
-                onClick={() => setShowConcierge(true)}
-                className="px-3 py-1.5 bg-[#08090B] border border-[#282E3A] hover:border-[#E5C875] text-[#E5C875] text-xs font-['Space_Grotesk'] rounded transition-colors"
-              >
-                Contatar Concierge
-              </button>
+
+              <div className="p-5 text-xs font-['Manrope'] leading-relaxed text-[#9CA3AF]">
+                {activeTab === 'provenance' && (
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-[#F4F1EA] font-['Space_Grotesk'] text-sm">
+                      História da Peça Histórica
+                    </h4>
+                    <p>
+                      {product.description}
+                    </p>
+                    <p>
+                      Catalogado e autenticado sob laudos periciais com custódia de segurança {product.custodian} ({product.custodianFacility}).
+                    </p>
+                  </div>
+                )}
+
+                {activeTab === 'specs' && (
+                  <div className="space-y-2 font-['Space_Grotesk']">
+                    <div className="flex justify-between py-1.5 border-b border-[#282E3A]">
+                      <span className="text-[#9CA3AF]">Ano Histórico:</span>
+                      <span className="text-[#F4F1EA]">{product.year}</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-[#282E3A]">
+                      <span className="text-[#9CA3AF]">Classificação:</span>
+                      <span className="text-[#F4F1EA]">{product.grade}</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-[#282E3A]">
+                      <span className="text-[#9CA3AF]">Método de Verificação:</span>
+                      <span className="text-[#F4F1EA]">{product.verifiedMethod}</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-[#282E3A]">
+                      <span className="text-[#9CA3AF]">Seguro Total:</span>
+                      <span className="text-[#F4F1EA]">{product.insurancePolicy}</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'shipping' && (
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-[#F4F1EA] font-['Space_Grotesk'] text-sm">
+                      Protocolo de Envio e Proteção ao Comprador
+                    </h4>
+                    <p>
+                      A entrega é realizada via transporte blindado especial de alta segurança com cobertura integral de seguro da Lloyd&apos;s of London até a entrega e conferência em mãos do comprador.
+                    </p>
+                    <p>
+                      Em conformidade com a legislação brasileira e o Código de Defesa do Consumidor, emitimos Nota Fiscal Eletrônica e Termo de Garantia Vitalícia de Autenticidade Registrado em Cartório de Títulos e Documentos.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>
-
-        {/* 5. TECHNICAL & FORENSIC DOSSIER TABS */}
-        <section className="mt-12 bg-[#12151B] border border-[#282E3A] rounded-lg overflow-hidden">
-          {/* Tab Header Buttons */}
-          <div className="flex flex-wrap items-center border-b border-[#282E3A] bg-[#1A1E26] px-4 md:px-6">
-            <button
-              onClick={() => setActiveTab('provenance')}
-              className={`py-3.5 px-5 text-xs font-['Space_Grotesk'] font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'provenance'
-                  ? 'border-[#f2ca50] text-[#f2ca50]'
-                  : 'border-transparent text-[#9CA3AF] hover:text-[#F4F1EA]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">history_edu</span>
-              Laudo Pericial &amp; Proveniência
-            </button>
-
-            <button
-              onClick={() => setActiveTab('specs')}
-              className={`py-3.5 px-5 text-xs font-['Space_Grotesk'] font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'specs'
-                  ? 'border-[#f2ca50] text-[#f2ca50]'
-                  : 'border-transparent text-[#9CA3AF] hover:text-[#F4F1EA]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">biotech</span>
-              Especificações Técnicas &amp; C14
-            </button>
-
-            <button
-              onClick={() => setActiveTab('transport')}
-              className={`py-3.5 px-5 text-xs font-['Space_Grotesk'] font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'transport'
-                  ? 'border-[#f2ca50] text-[#f2ca50]'
-                  : 'border-transparent text-[#9CA3AF] hover:text-[#F4F1EA]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">local_shipping</span>
-              Garantias de Transporte Blindado
-            </button>
-          </div>
-
-          {/* TAB 1: Provenance Timeline */}
-          {activeTab === 'provenance' && (
-            <div className="p-6 md:p-8 space-y-8 animate-fadeIn">
-              <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[#282E3A] gap-3">
-                <div>
-                  <h3 className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
-                    Linha do Tempo Ininterrupta de Custódia (1970 – Presente)
-                  </h3>
-                  <p className="text-xs font-['Manrope'] text-[#9CA3AF]">
-                    Cadeia de custódia forense documentada por cartórios notariais e autenticação de manuscritos.
-                  </p>
-                </div>
-                <span className="px-3 py-1 bg-[#08090B] border border-[#10B981] text-[#10B981] text-[10px] font-['Space_Grotesk'] font-bold rounded">
-                  CADEIA DE CUSTÓDIA 100% AUDITADA
-                </span>
-              </div>
-
-              <div className="relative pl-6 md:pl-10 space-y-6 before:content-[''] before:absolute before:left-2 md:before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#282E3A]">
-                {/* Event 1 */}
-                <div className="relative group">
-                  <div className="absolute -left-[31px] md:-left-[39px] top-1 w-3.5 h-3.5 rounded-full bg-[#f2ca50] border-4 border-[#12151B]"></div>
-                  <div className="bg-[#08090B] border border-[#282E3A] rounded p-4 group-hover:border-[#C59B27] transition-colors">
-                    <div className="flex flex-wrap items-center justify-between text-xs font-['Space_Grotesk'] mb-1">
-                      <span className="text-[#E5C875] font-bold">
-                        21 DE JUNHO DE 1970 · CIDADE DO MÉXICO
-                      </span>
-                      <span className="text-[#9CA3AF]">ESTÁDIO AZTECA (FINAL DA COPA)</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-[#F4F1EA] mb-1">
-                      Utilização no Jogo Oficial e Entrega Direta ao Roupeiro da CBD
-                    </h4>
-                    <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                      Manto utilizado no segundo tempo do histórico Brasil 4 x 1 Itália. Ao término da comemoração no gramado, o próprio camisa 10 assinou o manto na presença do corpo técnico e o entregou ao chefe de rouparia da delegação brasileira, Mário Américo / Almir de Almeida.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Event 2 */}
-                <div className="relative group">
-                  <div className="absolute -left-[31px] md:-left-[39px] top-1 w-3.5 h-3.5 rounded-full bg-[#C59B27] border-4 border-[#12151B]"></div>
-                  <div className="bg-[#08090B] border border-[#282E3A] rounded p-4 group-hover:border-[#C59B27] transition-colors">
-                    <div className="flex flex-wrap items-center justify-between text-xs font-['Space_Grotesk'] mb-1">
-                      <span className="text-[#E5C875] font-bold">
-                        1970 A 2004 · RIO DE JANEIRO, BRASIL
-                      </span>
-                      <span className="text-[#9CA3AF]">ACERVO FAMILIAR PRIVADO</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-[#F4F1EA] mb-1">
-                      Guarda Conservativa em Museu Particular do Roupeiro
-                    </h4>
-                    <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                      A relíquia permaneceu guardada em câmara escura sob umidade controlada pela família do auxiliar técnico, sem sofrer lavagens químicas abrasivas, mantendo os traços autênticos de transpiração, grama do Azteca e a integridade total da numeração de veludo.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Event 3 */}
-                <div className="relative group">
-                  <div className="absolute -left-[31px] md:-left-[39px] top-1 w-3.5 h-3.5 rounded-full bg-[#10B981] border-4 border-[#12151B]"></div>
-                  <div className="bg-[#08090B] border border-[#282E3A] rounded p-4 group-hover:border-[#10B981] transition-colors">
-                    <div className="flex flex-wrap items-center justify-between text-xs font-['Space_Grotesk'] mb-1">
-                      <span className="text-[#10B981] font-bold">
-                        OUTUBRO DE 2023 · GENEBRA / SÃO PAULO
-                      </span>
-                      <span className="text-[#9CA3AF]">VAULT DIAMOND RELICS INTERNACIONAL</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-[#F4F1EA] mb-1">
-                      Aquisição Institucional &amp; Emissão do Laudo COA-9801
-                    </h4>
-                    <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                      Aquisição consolidada por sindicato fiduciário com laudo grafotécnico emitido pelo Instituto Forense Internacional de Zurique e submissão aos testes de fibra orgânica C14 e espectroscopia Raman. Registro imutável lavrado em Ledger SHA-256.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: Tech Specs */}
-          {activeTab === 'specs' && (
-            <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
-              <div className="pb-4 border-b border-[#282E3A]">
-                <h3 className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
-                  Ficha Técnica Laboratorial &amp; Conservação
-                </h3>
-                <p className="text-xs font-['Manrope'] text-[#9CA3AF]">
-                  Resultados da espectrometria de massa, testes de datação radiocarbono e especificações de vitrine selada.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-['Space_Grotesk']">
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">COMPOSIÇÃO TÊXTIL</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    100% Algodão Mercerizado 1970
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Trama tubular de época com densidade de 180g/m², manufatura Athleta clássica.
-                  </p>
-                </div>
-
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">DATAÇÃO RADIOCARBONO (C14)</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    Calibração: 1968 – 1971 d.C.
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Nível de certeza 99.4% compatível com a colheita de algodão brasileira pré-1970.
-                  </p>
-                </div>
-
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">PIGMENTO DA ASSINATURA</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    Nankin com Negro de Fumo Histórico
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Penetração capilar confirmada via microscopia confocal de varredura laser.
-                  </p>
-                </div>
-
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">DIMENSÕES &amp; PESO EXATO</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    71.5 cm x 53.0 cm · 214.2 g
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Medição milimétrica a laser com tolerância de ±0.05 mm em atmosfera neutra.
-                  </p>
-                </div>
-
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">CÂMARA DE ENCAPSULAMENTO</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    Gás Inerte Argônio Puro (Ar)
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Caixa de acrílico aeroespacial blindado antirreflexo com bloqueio UV 99.9%.
-                  </p>
-                </div>
-
-                <div className="bg-[#08090B] border border-[#282E3A] p-4 rounded">
-                  <span className="text-[10px] text-[#E5C875] uppercase font-bold">MICROCLIMA INTERNO</span>
-                  <p className="text-sm font-bold text-[#F4F1EA] mt-1 font-['Manrope']">
-                    19.5°C Constante / 48% UR
-                  </p>
-                  <p className="text-[#9CA3AF] mt-1 text-[11px] font-['Manrope']">
-                    Monitoramento por telemetria IoT criptografada 24 horas ao dia com backup satelital.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: Armored Transport */}
-          {activeTab === 'transport' && (
-            <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
-              <div className="pb-4 border-b border-[#282E3A]">
-                <h3 className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
-                  Logística Tática Fiduciária Brink&apos;s Nível IV
-                </h3>
-                <p className="text-xs font-['Manrope'] text-[#9CA3AF]">
-                  Protocolo de entrega segura &apos;Door-to-Vault&apos; com escolta armada e apólice global inclusa na arrematação.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="border border-[#282E3A] bg-[#08090B] p-5 rounded space-y-2.5">
-                  <div className="w-10 h-10 rounded bg-[#1A1E26] flex items-center justify-center text-[#f2ca50]">
-                    <span className="material-symbols-outlined text-2xl">shield</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-[#F4F1EA] font-['Manrope']">
-                    Veículo Blindado Nível IV
-                  </h4>
-                  <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                    Transporte terrestre operado por comboio tático blindado Brink&apos;s Secure Logistics com suporte de rastreamento militar ativo e cabine estanque.
-                  </p>
-                </div>
-
-                <div className="border border-[#282E3A] bg-[#08090B] p-5 rounded space-y-2.5">
-                  <div className="w-10 h-10 rounded bg-[#1A1E26] flex items-center justify-center text-[#E5C875]">
-                    <span className="material-symbols-outlined text-2xl">flight_takeoff</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-[#F4F1EA] font-['Manrope']">
-                    Fretamento Aéreo Dedicado
-                  </h4>
-                  <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                    Para entregas internacionais (Zurique, Nova York, Londres, Dubai ou São Paulo), voo com cofre hermético a bordo e despachante alfandegário exclusivo.
-                  </p>
-                </div>
-
-                <div className="border border-[#282E3A] bg-[#08090B] p-5 rounded space-y-2.5">
-                  <div className="w-10 h-10 rounded bg-[#1A1E26] flex items-center justify-center text-[#10B981]">
-                    <span className="material-symbols-outlined text-2xl">handshake</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-[#F4F1EA] font-['Manrope']">
-                    Entrega Luva-Branca Privada
-                  </h4>
-                  <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                    Transferência de custódia presencial conduzida pelo Curador-Chefe Diamond Relics diretamente no cofre ou residência do adquirente mediante biometria.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
       </main>
 
-      {/* Institutional Footer */}
-      <Footer />
-
-      {/* Lightbox Modal */}
+      {/* Modal de Zoom */}
       <ImageModal
         isOpen={modalData.isOpen}
         onClose={() => setModalData({ ...modalData, isOpen: false })}
         imageUrl={modalData.imageUrl}
+        mediaType={modalData.mediaType}
         title={modalData.title}
         subtitle={modalData.subtitle}
       />
 
-      {/* Inspection Booking Modal */}
-      {showInspectionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-[#1A1E26] border border-[#f2ca50] rounded-lg max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#282E3A] pb-3">
-              <h3 className="font-['Playfair_Display'] font-bold text-base text-[#F4F1EA]">
-                Agendar Vistoria Presencial Privada
-              </h3>
-              <button
-                onClick={() => {
-                  setShowInspectionModal(false);
-                  setInspectionSuccess(false);
-                }}
-                className="text-[#9CA3AF] hover:text-white"
-              >
-                <span className="material-symbols-outlined text-sm">close</span>
-              </button>
-            </div>
-
-            {inspectionSuccess ? (
-              <div className="text-center py-6 space-y-3">
-                <span className="material-symbols-outlined text-4xl text-[#10B981]">
-                  verified_user
-                </span>
-                <h4 className="font-bold text-[#F4F1EA]">Solicitação de Acesso Registrada</h4>
-                <p className="text-xs text-[#9CA3AF]">
-                  Protocolo fiduciário #VST-PEL-70 emitido. O protocolo de biometria para a bóveda será enviado ao seu procurador.
-                </p>
-                <button
-                  onClick={() => {
-                    setShowInspectionModal(false);
-                    setInspectionSuccess(false);
-                  }}
-                  className="px-4 py-2 bg-[#f2ca50] text-[#08090B] font-bold text-xs rounded"
-                >
-                  Fechar
-                </button>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setInspectionSuccess(true);
-                }}
-                className="space-y-3 text-xs font-['Space_Grotesk']"
-              >
-                <div>
-                  <label className="block text-[#9CA3AF] mb-1">Local da Inspeção Óptica</label>
-                  <select className="w-full bg-[#12151B] border border-[#282E3A] p-2 rounded text-[#F4F1EA]">
-                    <option>Geneva Freeport (Suíça) - Bóveda #G-44</option>
-                    <option>São Paulo Bandeirantes Safe Facility</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[#9CA3AF] mb-1">Data Pretendida</label>
-                  <input
-                    type="date"
-                    required
-                    defaultValue="2026-09-20"
-                    className="w-full bg-[#12151B] border border-[#282E3A] p-2 rounded text-[#F4F1EA]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#9CA3AF] mb-1">Equipamento Requisitado</label>
-                  <div className="space-y-1 text-[#F4F1EA]">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-[#f2ca50]" />
-                      <span>Microscópio Óptico Confocal Laser 8K</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-[#f2ca50]" />
-                      <span>Câmara de Espectrometria UV-IR</span>
-                    </label>
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-bold uppercase rounded mt-2"
-                >
-                  Emitir Credencial Provisória
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Concierge Drawer/Modal */}
-      {showConcierge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-[#1A1E26] border border-[#E5C875] rounded-lg max-w-sm w-full p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#282E3A] pb-2.5">
-              <span className="text-xs font-bold text-[#E5C875] font-['Space_Grotesk']">
-                MESA DE OPERAÇÕES FIDUCIÁRIAS
-              </span>
-              <button onClick={() => setShowConcierge(false)} className="text-[#9CA3AF] hover:text-white">
-                <span className="material-symbols-outlined text-sm">close</span>
-              </button>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="w-14 h-14 mx-auto rounded-full bg-[#12151B] border border-[#f2ca50] flex items-center justify-center text-[#f2ca50] text-2xl">
-                <span className="material-symbols-outlined text-2xl">support_agent</span>
-              </div>
-              <h4 className="font-bold text-sm text-[#F4F1EA]">Dr. Marcelo V. Soares</h4>
-              <p className="text-xs text-[#9CA3AF]">
-                Curador Sênior e Especialista em Memorabilia Esportiva da FIFA e CBD
-              </p>
-              <div className="p-3 bg-[#12151B] rounded border border-[#282E3A] text-left text-xs font-['Space_Grotesk'] space-y-1">
-                <div>Canal Direto: +41 22 819 9002 (Genebra)</div>
-                <div>Chave PGP: 0x9B44F128A</div>
-                <div className="text-[#10B981]">Status: Disponível para chamada segura</div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowConcierge(false)}
-              className="w-full py-2 bg-[#f2ca50] text-[#08090B] font-bold text-xs uppercase rounded"
-            >
-              Iniciar Conexão Segura
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Rodapé Oficial */}
+      <Footer />
     </div>
+  );
+}
+
+export default function ProductPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#08090B] flex flex-col items-center justify-center gap-3 text-xs font-['Space_Grotesk'] text-[#f2ca50]">
+          <span className="material-symbols-outlined text-4xl animate-spin">progress_activity</span>
+          <span>Carregando Relíquia Esportiva...</span>
+        </div>
+      }
+    >
+      <ProductContent />
+    </Suspense>
   );
 }

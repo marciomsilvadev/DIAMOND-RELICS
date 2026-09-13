@@ -1,31 +1,46 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { RelayBar } from '@/components/RelayBar';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ImageModal } from '@/components/ImageModal';
-import { CATALOG_RELICS, RelicItem } from '@/lib/relics-data';
+import { RelicItem, CATALOG_RELICS } from '@/lib/relics-data';
+import { getStoredProducts } from '@/lib/products-store';
+import { getStoredSiteConfig, DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/site-config-store';
 
 export default function CatalogPage() {
+  const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [selectedSports, setSelectedSports] = useState<string[]>([
     'futebol',
     'f1',
     'basquete',
     'boxe',
   ]);
-  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([
-    'Pelé',
-    'Ayrton Senna',
-    'Michael Jordan',
-    'Muhammad Ali',
-  ]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [maxPrice, setMaxPrice] = useState<number>(20000000);
+  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([]);
+  const [selectedAvailability, setSelectedAvailability] = useState<string>('all');
+  const [maxPrice, setMaxPrice] = useState<number>(10000000);
   const [sortBy, setSortBy] = useState<string>('highest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [allRelics, setAllRelics] = useState<RelicItem[]>(CATALOG_RELICS);
+
+  useEffect(() => {
+    setAllRelics(getStoredProducts());
+    setConfig(getStoredSiteConfig());
+
+    const handleProductsUpdate = () => setAllRelics(getStoredProducts());
+    const handleConfigUpdate = () => setConfig(getStoredSiteConfig());
+
+    window.addEventListener('diamond_products_updated', handleProductsUpdate);
+    window.addEventListener('diamond_config_updated', handleConfigUpdate);
+
+    return () => {
+      window.removeEventListener('diamond_products_updated', handleProductsUpdate);
+      window.removeEventListener('diamond_config_updated', handleConfigUpdate);
+    };
+  }, []);
 
   const [modalData, setModalData] = useState<{
     isOpen: boolean;
@@ -51,42 +66,54 @@ export default function CatalogPage() {
     );
   };
 
+  const availableAthletes = useMemo(() => {
+    const set = new Set<string>();
+    allRelics.forEach((r) => {
+      if (r.athlete && r.athlete.trim()) set.add(r.athlete.trim());
+    });
+    return Array.from(set);
+  }, [allRelics]);
+
   const resetFilters = () => {
     setSelectedSports(['futebol', 'f1', 'basquete', 'boxe']);
-    setSelectedAthletes(['Pelé', 'Ayrton Senna', 'Michael Jordan', 'Muhammad Ali']);
-    setSelectedStatus('all');
-    setMaxPrice(20000000);
+    setSelectedAthletes([]);
+    setSelectedAvailability('all');
+    setMaxPrice(10000000);
     setSearchTerm('');
   };
 
   const filteredRelics = useMemo(() => {
-    return CATALOG_RELICS.filter((item) => {
-      const matchesSport = selectedSports.includes(item.sport);
-      const matchesAthlete = selectedAthletes.some((a) =>
-        item.athlete.toLowerCase().includes(a.toLowerCase())
-      );
-      const matchesPrice = item.valuationBRL <= maxPrice;
-      const matchesStatus =
-        selectedStatus === 'all' ||
-        (selectedStatus === 'active_bid' && item.status === 'active_bid') ||
-        (selectedStatus === 'direct_buy' && item.status === 'direct_buy') ||
-        (selectedStatus === 'private_treaty' && item.status === 'private_treaty');
-
+    return allRelics.filter((item) => {
+      const matchesSport = selectedSports.length === 0 || selectedSports.includes(item.sport || '');
+      const matchesAthlete =
+        selectedAthletes.length === 0 ||
+        selectedAthletes.some((a) =>
+          (item.athlete || '').toLowerCase().includes(a.toLowerCase())
+        );
+      const matchesPrice = (Number(item.priceBRL) || 0) <= maxPrice;
+      const matchesAvailability =
+        selectedAvailability === 'all' || item.status === selectedAvailability;
+      const term = searchTerm.toLowerCase();
       const matchesSearch =
         searchTerm === '' ||
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.athlete.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.lotNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchTerm.toLowerCase());
+        (item.title || '').toLowerCase().includes(term) ||
+        (item.athlete || '').toLowerCase().includes(term) ||
+        (item.category || '').toLowerCase().includes(term) ||
+        (item.sku || '').toLowerCase().includes(term);
 
-      return matchesSport && matchesAthlete && matchesPrice && matchesStatus && matchesSearch;
+      return matchesSport && matchesAthlete && matchesPrice && matchesAvailability && matchesSearch;
     }).sort((a, b) => {
-      if (sortBy === 'highest') return b.valuationBRL - a.valuationBRL;
-      if (sortBy === 'lowest') return a.valuationBRL - b.valuationBRL;
-      if (sortBy === 'chronological') return a.year - b.year;
+      const priceA = Number(a.priceBRL) || 0;
+      const priceB = Number(b.priceBRL) || 0;
+      const yearA = Number(a.year) || 0;
+      const yearB = Number(b.year) || 0;
+      if (sortBy === 'highest') return priceB - priceA;
+      if (sortBy === 'lowest') return priceA - priceB;
+      if (sortBy === 'year_desc') return yearB - yearA;
+      if (sortBy === 'year_asc') return yearA - yearB;
       return 0;
     });
-  }, [selectedSports, selectedAthletes, maxPrice, selectedStatus, searchTerm, sortBy]);
+  }, [allRelics, selectedSports, selectedAthletes, maxPrice, selectedAvailability, searchTerm, sortBy]);
 
   const openImage = (imageUrl: string, title: string, subtitle?: string) => {
     setModalData({
@@ -99,398 +126,261 @@ export default function CatalogPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#08090B] text-[#e2e2e6] selection:bg-[#d4af37] selection:text-[#08090B]">
-      {/* 1. Simulation Relay Bar */}
+      {/* 1. Global Navigation Relay Bar */}
       <RelayBar />
 
-      {/* Main Top Nav Bar */}
+      {/* Main Top Institutional Nav Bar */}
       <Navbar currentSearch={searchTerm} onSearchChange={setSearchTerm} />
 
-      {/* PRESTIGE HERO BANNER */}
-      <section className="border-b border-[#282E3A] bg-gradient-to-b from-[#08090B] via-[#12151B] to-[#08090B] relative overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#f2ca50]/5 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 py-10 relative z-10">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-            <div className="max-w-3xl">
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="px-2.5 py-1 bg-[#12151B] border border-[#C59B27]/40 rounded text-[11px] font-['Space_Grotesk'] text-[#E5C875] uppercase tracking-wider font-semibold">
-                  Bunker Suíço • Custódia Nível VI
-                </span>
-                <span className="text-xs font-['Space_Grotesk'] text-[#10B981] flex items-center gap-1 font-medium">
-                  <span className="material-symbols-outlined text-sm">verified</span>
-                  Protocolo COA Físico-Digital
+      {/* Header Institucional do Catálogo */}
+      <section className="bg-[#12151B] border-b border-[#282E3A] py-8 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
+                <span className="text-xs font-['Space_Grotesk'] text-[#E5C875] tracking-widest uppercase font-semibold">
+                  Loja Oficial • Venda Direta
                 </span>
               </div>
-
-              <h1 className="text-3xl sm:text-5xl font-['Playfair_Display'] font-bold text-[#F4F1EA] mb-3 tracking-tight">
-                Diamond Relics Sovereign Provenance
+              <h1 className="text-2xl sm:text-4xl font-['Playfair_Display'] font-bold text-[#F4F1EA] tracking-tight">
+                {config.catalogPageTitle || 'Catálogo de Relíquias Esportivas'}
               </h1>
-
-              <p className="text-xs sm:text-sm font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                Acervo curatorial de memorabilia histórica, relíquias esportivas de categoria museológica e contratos de custódia fiduciária autenticados por espectrometria de massa, radiocarbono e auditoria forense SHA-256.
+              <p className="text-xs sm:text-sm font-['Manrope'] text-[#9CA3AF] mt-2 max-w-2xl leading-relaxed">
+                {config.catalogPageSubtitle ||
+                  'Peças históricas originais dos maiores atletas do mundo com laudos forenses, certificado vitalício de autenticidade e entrega segura blindada para todo o Brasil.'}
               </p>
             </div>
 
-            {/* Global Vault Actions */}
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-              <Link
-                href="/checkout"
-                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#12151B] border border-[#C59B27]/60 text-[#F4F1EA] text-xs font-['Manrope'] font-semibold rounded hover:border-[#f2ca50] hover:bg-[#1A1E26] transition-all"
-              >
-                <span className="material-symbols-outlined text-[#E5C875] text-base">
-                  enhanced_encryption
-                </span>
-                Escrow Blindado
-              </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-[#08090B] px-4 py-2.5 rounded border border-[#282E3A] flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#f2ca50] text-xl">payments</span>
+                <div>
+                  <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
+                    Condição Especial
+                  </span>
+                  <span className="text-xs font-['Space_Grotesk'] text-[#10B981] font-bold">
+                    5% OFF no PIX ou até 12x
+                  </span>
+                </div>
+              </div>
 
-              <Link
-                href="/admin"
-                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#f2ca50] text-[#08090B] font-['Manrope'] text-xs font-bold uppercase tracking-wider rounded hover:bg-[#E5C875] transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)]"
-              >
-                <span className="material-symbols-outlined text-base">lock_open</span>
-                Acesso ao Cofre
-              </Link>
-            </div>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-[#282E3A]">
-            <div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                TOTAL SOB CUSTÓDIA
-              </div>
-              <div className="text-lg font-['Manrope'] text-[#E5C875] font-bold">
-                R$ 184.750.000,00
-              </div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                US$ 36.95M Fiduciário
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                LOTES ATIVOS EM VITRINE
-              </div>
-              <div className="text-lg font-['Manrope'] text-[#F4F1EA] font-bold">
-                48 Relíquias
-              </div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#10B981]">
-                100% Validado COA 8K
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                LOCALIZAÇÃO PRIMÁRIA
-              </div>
-              <div className="text-lg font-['Manrope'] text-[#F4F1EA] font-bold">
-                Zurique • Freeport
-              </div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                Atm. Inerte Nitrogênio
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                CONTRATOS DE ESCROW
-              </div>
-              <div className="text-lg font-['Manrope'] text-[#F59E0B] font-bold">
-                14 Em Liquidação
-              </div>
-              <div className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-                Garantia Bancária Tier 1
+              <div className="bg-[#08090B] px-4 py-2.5 rounded border border-[#282E3A] flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#10B981] text-xl">local_shipping</span>
+                <div>
+                  <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
+                    Frete Blindado
+                  </span>
+                  <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold">
+                    Seguro 100% Incluso
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION HEADER: Acervo Geral & Lotes + Controls */}
-      <div className="border-b border-[#282E3A] bg-[#12151B]/80 sticky top-[57px] z-30 backdrop-blur-md">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-          <div>
-            <h2 className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#F4F1EA] flex items-center gap-2.5">
-              Acervo Geral &amp; Lotes em Custódia Fiduciária
-              <span className="text-xs font-['Space_Grotesk'] font-normal text-[#E5C875] bg-[#1A1E26] px-2.5 py-0.5 rounded border border-[#282E3A]">
-                {filteredRelics.length} Exibidos (de 48)
-              </span>
-            </h2>
-            <p className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF]">
-              R$ 184M sob salvaguarda fiduciária e monitoramento de laser espectral.
-            </p>
-          </div>
-
-          {/* Sorting & View Controls */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <label
-              htmlFor="sortSelect"
-              className="text-xs font-['Space_Grotesk'] text-[#9CA3AF] whitespace-nowrap hidden sm:inline"
-            >
-              ORDENAR POR:
-            </label>
-            <select
-              id="sortSelect"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full md:w-56 bg-[#12151B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-1.5 focus:outline-none focus:border-[#f2ca50] cursor-pointer"
-            >
-              <option value="highest">Maior Valor em Escrow</option>
-              <option value="lowest">Menor Valor em Escrow</option>
-              <option value="chronological">Datação Cronológica</option>
-            </select>
-
-            <div className="hidden sm:flex border border-[#282E3A] rounded overflow-hidden">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-2.5 py-1.5 transition-colors ${
-                  viewMode === 'grid' ? 'bg-[#1A1E26] text-[#E5C875]' : 'bg-[#12151B] text-[#9CA3AF]'
-                }`}
-                title="Grade de Vitrine"
-              >
-                <span className="material-symbols-outlined text-sm">grid_view</span>
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-2.5 py-1.5 transition-colors ${
-                  viewMode === 'list' ? 'bg-[#1A1E26] text-[#E5C875]' : 'bg-[#12151B] text-[#9CA3AF]'
-                }`}
-                title="Lista Forense"
-              >
-                <span className="material-symbols-outlined text-sm">view_agenda</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN VIEWPORT: SIDEBAR FILTERS (LEFT) + ARTIFACT PRODUCT GRID (RIGHT) */}
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 py-8 flex-1 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* 4. FACETED FILTERS SIDEBAR */}
-          <aside className="lg:col-span-3 space-y-5 bg-[#12151B] p-5 border border-[#282E3A] rounded-lg">
-            <div className="flex items-center justify-between pb-3 border-b border-[#282E3A]">
-              <span className="text-sm font-['Manrope'] font-bold text-[#F4F1EA] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#E5C875] text-base">tune</span>
-                Filtros do Cofre
-              </span>
-              <button
-                onClick={resetFilters}
-                className="text-xs font-['Space_Grotesk'] text-[#C59B27] hover:text-[#E5C875] transition-colors"
-              >
-                Resetar
-              </button>
-            </div>
-
-            {/* Facet: Esporte Histórico */}
-            <div>
-              <h3 className="text-xs font-['Space_Grotesk'] text-[#E5C875] uppercase mb-2.5 flex justify-between items-center font-semibold">
-                <span>Esporte &amp; Modalidade</span>
-                <span className="text-[#9CA3AF] font-normal">4 Cat.</span>
-              </h3>
-              <div className="space-y-2 text-xs font-['Manrope']">
-                {[
-                  { id: 'futebol', label: 'Futebol Histórico', count: '(24)' },
-                  { id: 'f1', label: 'Automobilismo / F1', count: '(11)' },
-                  { id: 'basquete', label: 'Basquete NBA', count: '(8)' },
-                  { id: 'boxe', label: 'Tênis & Boxe Clássico', count: '(5)' },
-                ].map((s) => (
-                  <label
-                    key={s.id}
-                    className="flex items-center justify-between group cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]"
-                  >
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedSports.includes(s.id)}
-                        onChange={() => toggleSport(s.id)}
-                        className="rounded bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{s.label}</span>
-                    </span>
-                    <span className="font-['Space_Grotesk'] text-[#9CA3AF] text-[11px]">
-                      {s.count}
-                    </span>
-                  </label>
-                ))}
+      {/* Main Catalog Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-12 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Sidebar / Filters Column */}
+          <aside className="lg:col-span-3 space-y-6">
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-5 space-y-6 sticky top-24">
+              <div className="flex items-center justify-between pb-3 border-b border-[#282E3A]">
+                <h2 className="text-xs font-bold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm text-[#f2ca50]">filter_alt</span>
+                  Filtros da Loja
+                </h2>
+                <button
+                  onClick={resetFilters}
+                  className="text-[11px] text-[#9CA3AF] hover:text-[#E5C875] font-['Space_Grotesk'] transition-colors"
+                >
+                  Limpar Todos
+                </button>
               </div>
-            </div>
 
-            <hr className="border-[#282E3A]" />
-
-            {/* Facet: Atletas Lendários */}
-            <div>
-              <h3 className="text-xs font-['Space_Grotesk'] text-[#E5C875] uppercase mb-2.5 font-semibold">
-                Atletas Lendários
-              </h3>
-              <div className="space-y-2 text-xs font-['Manrope']">
-                {[
-                  { name: 'Pelé', badge: 'REI' },
-                  { name: 'Ayrton Senna', count: '(6)' },
-                  { name: 'Michael Jordan', count: '(4)' },
-                  { name: 'Muhammad Ali', count: '(2)' },
-                ].map((ath) => (
-                  <label
-                    key={ath.name}
-                    className="flex items-center justify-between group cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]"
-                  >
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedAthletes.includes(ath.name)}
-                        onChange={() => toggleAthlete(ath.name)}
-                        className="rounded bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{ath.name}</span>
-                    </span>
-                    {ath.badge ? (
-                      <span className="text-[10px] font-['Space_Grotesk'] text-[#E5C875] bg-[#1A1E26] px-1.5 py-0.5 border border-[#282E3A] rounded">
-                        {ath.badge}
-                      </span>
-                    ) : (
-                      <span className="font-['Space_Grotesk'] text-[#9CA3AF] text-[11px]">
-                        {ath.count}
-                      </span>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-[#282E3A]" />
-
-            {/* Facet: Status de Negociação */}
-            <div>
-              <h3 className="text-xs font-['Space_Grotesk'] text-[#E5C875] uppercase mb-2.5 font-semibold">
-                Status de Negociação
-              </h3>
-              <div className="space-y-2 text-xs font-['Manrope']">
-                <label className="flex items-center justify-between cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="status"
-                      checked={selectedStatus === 'all'}
-                      onChange={() => setSelectedStatus('all')}
-                      className="bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0"
-                    />
-                    <span>Todos os Lotes</span>
-                  </span>
-                </label>
-                <label className="flex items-center justify-between cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="status"
-                      checked={selectedStatus === 'active_bid'}
-                      onChange={() => setSelectedStatus('active_bid')}
-                      className="bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0"
-                    />
-                    <span>Lance Ativo / Fiduciário</span>
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping"></span>
-                </label>
-                <label className="flex items-center justify-between cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="status"
-                      checked={selectedStatus === 'direct_buy'}
-                      onChange={() => setSelectedStatus('direct_buy')}
-                      className="bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0"
-                    />
-                    <span>Compra Direta em Escrow</span>
-                  </span>
-                  <span className="material-symbols-outlined text-xs text-[#9CA3AF]">bolt</span>
-                </label>
-                <label className="flex items-center justify-between cursor-pointer text-[#F4F1EA] hover:text-[#E5C875]">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="status"
-                      checked={selectedStatus === 'private_treaty'}
-                      onChange={() => setSelectedStatus('private_treaty')}
-                      className="bg-[#12151B] border-[#594A2B] text-[#f2ca50] focus:ring-0"
-                    />
-                    <span>Sob Tratado Privado</span>
-                  </span>
-                  <span className="material-symbols-outlined text-xs text-[#9CA3AF]">lock</span>
-                </label>
-              </div>
-            </div>
-
-            <hr className="border-[#282E3A]" />
-
-            {/* Facet: Faixa de Valor */}
-            <div>
-              <div className="flex justify-between items-center mb-2 text-xs">
-                <h3 className="font-['Space_Grotesk'] text-[#E5C875] uppercase font-semibold">
-                  Faixa de Valor
-                </h3>
-                <span className="font-['Space_Grotesk'] text-[#E5C875]">
-                  Até R$ {(maxPrice / 1000000).toFixed(1)}M
+              {/* Filtro por Esporte */}
+              <div>
+                <span className="text-xs font-semibold text-[#F4F1EA] font-['Space_Grotesk'] block mb-2.5 uppercase tracking-wide">
+                  Modalidade Esportiva
                 </span>
-              </div>
-              <input
-                type="range"
-                min="500000"
-                max="20000000"
-                step="250000"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-[#f2ca50] bg-[#1A1E26] h-1.5 rounded cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] mt-1.5">
-                <span>R$ 500k</span>
-                <span>R$ 10M</span>
-                <span>R$ 20M+</span>
+                <div className="space-y-2">
+                  {[
+                    { id: 'futebol', label: 'Futebol', icon: 'sports_soccer' },
+                    { id: 'f1', label: 'Fórmula 1', icon: 'sports_motorsports' },
+                    { id: 'basquete', label: 'Basquete (NBA)', icon: 'sports_basketball' },
+                    { id: 'boxe', label: 'Boxe Histórico', icon: 'sports_mma' },
+                  ].map((s) => (
+                    <label
+                      key={s.id}
+                      className="flex items-center justify-between text-xs font-['Manrope'] text-[#9CA3AF] hover:text-[#F4F1EA] cursor-pointer p-1.5 rounded hover:bg-[#1A1E26] transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedSports.includes(s.id)}
+                          onChange={() => toggleSport(s.id)}
+                          className="rounded border-[#282E3A] bg-[#08090B] text-[#f2ca50] focus:ring-0 focus:ring-offset-0"
+                        />
+                        <span className="material-symbols-outlined text-sm text-[#9CA3AF]">
+                          {s.icon}
+                        </span>
+                        <span>{s.label}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {/* Fast Tier Buttons */}
-              <div className="grid grid-cols-2 gap-2 mt-3 text-xs font-['Space_Grotesk']">
-                <button
-                  onClick={() => setMaxPrice(2500000)}
-                  className="px-2 py-1 bg-[#1A1E26] hover:bg-[#282E3A] text-[#9CA3AF] hover:text-[#E5C875] border border-[#282E3A] rounded text-center transition-colors text-[11px]"
-                >
-                  Até R$ 2.5M
-                </button>
-                <button
-                  onClick={() => setMaxPrice(20000000)}
-                  className="px-2 py-1 bg-[#1A1E26] hover:bg-[#282E3A] text-[#E5C875] border border-[#f2ca50]/40 rounded text-center transition-colors text-[11px]"
-                >
-                  High-Value &gt; R$ 4M
-                </button>
+              {/* Filtro por Atleta */}
+              <div>
+                <div className="flex justify-between items-center mb-2.5">
+                  <span className="text-xs font-semibold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wide">
+                    Lendas &amp; Atletas
+                  </span>
+                  {selectedAthletes.length > 0 && (
+                    <button
+                      onClick={() => setSelectedAthletes([])}
+                      className="text-[10px] text-[#f2ca50] hover:underline"
+                    >
+                      Todos
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {availableAthletes.map((athlete) => (
+                    <label
+                      key={athlete}
+                      className="flex items-center gap-2 text-xs font-['Manrope'] text-[#9CA3AF] hover:text-[#F4F1EA] cursor-pointer p-1.5 rounded hover:bg-[#1A1E26] transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedAthletes.includes(athlete)}
+                        onChange={() => toggleAthlete(athlete)}
+                        className="rounded border-[#282E3A] bg-[#08090B] text-[#f2ca50] focus:ring-0 focus:ring-offset-0"
+                      />
+                      <span className="truncate">{athlete}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Escrow Protection Badge */}
-            <div className="p-3 bg-[#1A1E26] border border-[#282E3A] rounded text-xs space-y-1">
-              <div className="flex items-center gap-1.5 text-[#E5C875] font-bold">
-                <span className="material-symbols-outlined text-sm">gavel</span>
-                Custódia Segura Garantida
+              {/* Filtro por Faixa de Preço em Reais */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-semibold text-[#F4F1EA] font-['Space_Grotesk'] uppercase tracking-wide">
+                    Preço Máximo
+                  </span>
+                  <span className="text-xs font-['Space_Grotesk'] text-[#f2ca50] font-bold">
+                    R$ {maxPrice.toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={1000000}
+                  max={10000000}
+                  step={250000}
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  className="w-full accent-[#f2ca50] bg-[#08090B] h-1.5 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] mt-1">
+                  <span>R$ 1.000.000</span>
+                  <span>R$ 10.000.000</span>
+                </div>
               </div>
-              <p className="text-[#9CA3AF] text-[11px] leading-relaxed">
-                Liquidação fiduciária com retenção bancária e laudo de transferência cartorial suíço.
-              </p>
+
+              {/* Disponibilidade */}
+              <div>
+                <span className="text-xs font-semibold text-[#F4F1EA] font-['Space_Grotesk'] block mb-2 uppercase tracking-wide">
+                  Disponibilidade
+                </span>
+                <select
+                  value={selectedAvailability}
+                  onChange={(e) => setSelectedAvailability(e.target.value)}
+                  className="w-full bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-2 focus:outline-none focus:border-[#f2ca50]"
+                >
+                  <option value="all">Todos os Produtos</option>
+                  <option value="available">Disponível para Compra Imediata</option>
+                </select>
+              </div>
             </div>
           </aside>
 
-          {/* 5. ARTIFACT SHOWCASE (RIGHT - 9 Columns) */}
-          <section className="lg:col-span-9 space-y-6">
-            {filteredRelics.length === 0 ? (
-              <div className="p-12 text-center bg-[#12151B] border border-[#282E3A] rounded-lg space-y-3">
-                <span className="material-symbols-outlined text-4xl text-[#C59B27]">
-                  filter_alt_off
+          {/* Catalog Products Column */}
+          <div className="lg:col-span-9 space-y-6">
+            {/* Top Toolbar */}
+            <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-['Space_Grotesk'] text-[#9CA3AF]">
+                  Exibindo{' '}
+                  <strong className="text-[#F4F1EA]">{filteredRelics.length}</strong> produtos
+                  disponíveis
                 </span>
-                <h3 className="text-lg font-bold text-[#F4F1EA]">Nenhum lote corresponde aos filtros</h3>
-                <p className="text-xs text-[#9CA3AF]">
-                  Experimente redefinir os filtros de esporte, atleta ou ampliar a faixa de preço fiduciário.
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-['Space_Grotesk'] text-[#9CA3AF] hidden sm:inline">
+                    Ordenar por:
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-[#08090B] border border-[#282E3A] text-xs font-['Space_Grotesk'] text-[#F4F1EA] rounded px-3 py-1.5 focus:outline-none focus:border-[#f2ca50]"
+                  >
+                    <option value="highest">Maior Preço (R$)</option>
+                    <option value="lowest">Menor Preço (R$)</option>
+                    <option value="year_desc">Ano Histórico (Mais Recente)</option>
+                    <option value="year_asc">Ano Histórico (Mais Antigo)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center border border-[#282E3A] rounded overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 ${
+                      viewMode === 'grid'
+                        ? 'bg-[#1A1E26] text-[#f2ca50]'
+                        : 'bg-[#08090B] text-[#9CA3AF]'
+                    } hover:text-[#F4F1EA] transition-colors`}
+                    title="Visualização em Grade"
+                  >
+                    <span className="material-symbols-outlined text-base">grid_view</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 ${
+                      viewMode === 'list'
+                        ? 'bg-[#1A1E26] text-[#f2ca50]'
+                        : 'bg-[#08090B] text-[#9CA3AF]'
+                    } hover:text-[#F4F1EA] transition-colors`}
+                    title="Visualização em Lista"
+                  >
+                    <span className="material-symbols-outlined text-base">view_list</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            {filteredRelics.length === 0 ? (
+              <div className="bg-[#12151B] border border-[#282E3A] rounded-lg p-12 text-center space-y-4">
+                <span className="material-symbols-outlined text-5xl text-[#9CA3AF]">
+                  inventory_2
+                </span>
+                <h3 className="text-lg font-bold text-[#F4F1EA] font-['Playfair_Display']">
+                  Nenhum produto encontrado com os filtros selecionados
+                </h3>
+                <p className="text-xs text-[#9CA3AF] font-['Manrope'] max-w-md mx-auto">
+                  Tente redefinir os filtros de preço, atleta ou esporte para visualizar outros produtos do catálogo.
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="px-4 py-2 bg-[#f2ca50] text-[#08090B] font-bold text-xs rounded uppercase tracking-wider"
+                  className="px-4 py-2 bg-[#f2ca50] text-[#08090B] font-bold text-xs rounded uppercase font-['Space_Grotesk'] hover:bg-[#E5C875] transition-colors"
                 >
-                  Resetar Filtros
+                  Restaurar Filtros
                 </button>
               </div>
             ) : (
@@ -504,68 +394,77 @@ export default function CatalogPage() {
                 {filteredRelics.map((relic) => (
                   <article
                     key={relic.id}
-                    className={`bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 transition-all duration-300 rounded overflow-hidden flex flex-col group shadow-lg hover:shadow-[0_16px_40px_-4px_rgba(212,175,55,0.15)] relative ${
-                      viewMode === 'list' ? 'sm:flex-row' : ''
-                    }`}
+                    className="bg-[#12151B] border border-[#282E3A] hover:border-[#f2ca50]/70 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(242,202,80,0.12)] flex flex-col group"
                   >
-                    {/* Image bay */}
-                    <div
-                      className={`relative bg-[#08090B] overflow-hidden ${
-                        viewMode === 'list' ? 'sm:w-72 aspect-[4/3] sm:aspect-auto' : 'aspect-[4/5]'
-                      }`}
-                    >
+                    {/* Imagem do Produto */}
+                    <div className="relative aspect-[4/3] bg-[#08090B] overflow-hidden">
                       <img
                         src={relic.imageUrl}
                         alt={relic.altText}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 cursor-pointer"
-                        onClick={() => openImage(relic.imageUrl, relic.title, relic.category)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#08090B] via-transparent to-transparent opacity-80" />
 
-                      {/* Direct HTML image link action button */}
+                      {/* Botão de Ampliação */}
                       <button
-                        onClick={() => openImage(relic.imageUrl, relic.title, relic.category)}
-                        className="absolute top-2.5 right-2.5 bg-[#08090B]/90 hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#E5C875] text-[10px] font-['Space_Grotesk'] px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                        title="Ver Imagem Original Direta em HTML"
+                        onClick={() => openImage(relic.imageUrl, relic.title, relic.sku)}
+                        className="absolute top-3 right-3 p-1.5 bg-[#08090B]/80 hover:bg-[#f2ca50] hover:text-[#08090B] text-[#F4F1EA] rounded-full border border-[#282E3A] transition-all"
+                        title="Ver foto em alta resolução"
                       >
-                        <span className="material-symbols-outlined text-xs">open_in_new</span>
-                        <span>Link Direto</span>
+                        <span className="material-symbols-outlined text-base">zoom_in</span>
                       </button>
 
-                      {/* Badges Overlay */}
-                      <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
-                        <span className="px-2 py-0.5 bg-[#08090B]/90 backdrop-blur-md border border-[#10B981]/60 text-[#10B981] text-[10px] font-['Space_Grotesk'] font-bold rounded flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">verified</span>
-                          {relic.grade}
-                        </span>
-                        <span className="px-2 py-0.5 bg-[#12151B]/90 border border-[#282E3A] text-[#E5C875] text-[10px] font-['Space_Grotesk'] rounded">
-                          {relic.lotNumber}
-                        </span>
+                      {/* Badge de Disponibilidade */}
+                      <div className="absolute top-3 left-3 flex flex-col gap-1">
+                        {relic.status === 'sold' ? (
+                          <span className="px-2.5 py-0.5 bg-red-950/90 border border-red-500 text-red-400 text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            {config.btnSoldOut || 'Vendido'}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 bg-[#08090B]/90 border border-[#10B981] text-[#10B981] text-[10px] font-['Space_Grotesk'] font-bold rounded uppercase flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                            {relic.statusLabel}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="absolute bottom-2.5 right-2.5">
-                        <span
-                          className={`px-2 py-0.5 bg-[#08090B]/90 border rounded text-[10px] font-['Space_Grotesk'] flex items-center gap-1 ${
-                            relic.status === 'active_bid'
-                              ? 'border-[#F59E0B]/60 text-[#F59E0B]'
-                              : relic.status === 'direct_buy'
-                              ? 'border-[#282E3A] text-[#F4F1EA]'
-                              : 'border-[#C59B27]/50 text-[#E5C875]'
-                          }`}
-                        >
-                          {relic.status === 'active_bid' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-ping"></span>
-                          )}
-                          {relic.statusLabel}
+                      <div className="absolute bottom-2 left-3 right-3 flex justify-between items-end text-[11px] font-['Space_Grotesk']">
+                        <span className="text-[#9CA3AF] bg-[#08090B]/80 px-2 py-0.5 rounded border border-[#282E3A]">
+                          SKU: {relic.sku}
                         </span>
+                        <div className="flex items-center gap-1.5">
+                          {relic.gallery && relic.gallery.length > 1 && (
+                            <span
+                              className="text-[#E5C875] bg-[#08090B]/85 px-1.5 py-0.5 rounded border border-[#282E3A] flex items-center gap-1 text-[10px]"
+                              title={`${relic.gallery.length} fotos e vídeos na galeria`}
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                {relic.gallery.some((g) => g.type === 'video')
+                                  ? 'videocam'
+                                  : 'photo_library'}
+                              </span>
+                              {relic.gallery.length}
+                            </span>
+                          )}
+                          <span className="text-[#f2ca50] bg-[#08090B]/80 px-2 py-0.5 rounded border border-[#282E3A]">
+                            Ano {relic.year}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Content Area */}
+                    {/* Conteúdo do Card */}
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div>
                         <div className="flex justify-between items-center text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] mb-1">
-                          <span className="uppercase">{relic.category}</span>
-                          <span className="text-[#10B981] text-[10px]">{relic.verifiedMethod}</span>
+                          <span className="uppercase text-[#C59B27] font-semibold">
+                            {relic.category}
+                          </span>
+                          <span className="text-[#10B981] text-[10px] flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-xs">verified</span>
+                            Certificado
+                          </span>
                         </div>
 
                         <h3 className="text-base sm:text-lg font-['Playfair_Display'] font-bold text-[#F4F1EA] group-hover:text-[#E5C875] transition-colors leading-snug">
@@ -577,46 +476,48 @@ export default function CatalogPage() {
                         </p>
                       </div>
 
-                      {/* Valuation & Actions */}
+                      {/* Preço em Reais e Ações de Compra */}
                       <div className="pt-3 border-t border-[#282E3A]">
-                        <div className="flex justify-between items-baseline mb-3">
-                          <div>
-                            <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
-                              VALOR EM ESCROW
+                        <div className="mb-3">
+                          <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
+                            Preço de Venda
+                          </span>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#f2ca50]">
+                              R$ {(Number(relic.priceBRL) || 0).toLocaleString('pt-BR')},00
                             </span>
-                            <span className="text-base sm:text-lg font-['Playfair_Display'] font-bold text-[#E5C875]">
-                              R$ {relic.valuationBRL.toLocaleString('pt-BR')}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-[10px] font-['Space_Grotesk'] text-[#9CA3AF] block uppercase">
-                              EQUIV. USD
-                            </span>
-                            <span className="text-xs font-['Space_Grotesk'] text-[#F4F1EA]">
-                              $ {relic.valuationUSD.toLocaleString('en-US')}
+                            <span className="text-[10px] font-['Space_Grotesk'] text-[#10B981] font-semibold">
+                              (à vista no PIX)
                             </span>
                           </div>
+                          <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] block mt-0.5">
+                            ou {relic.installments || '12x sem juros'}
+                          </span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <Link
-                            href="/product"
+                            href={`/product?id=${relic.id}`}
                             className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-[#F4F1EA] text-xs font-['Manrope'] font-medium rounded transition-colors text-center"
                           >
                             <span className="material-symbols-outlined text-sm">visibility</span>
-                            Inspecionar
+                            {config.btnViewDetails}
                           </Link>
 
-                          <Link
-                            href="/checkout"
-                            className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm"
-                          >
-                            {relic.status === 'active_bid'
-                              ? 'Dar Lance'
-                              : relic.status === 'direct_buy'
-                              ? 'Comprar'
-                              : 'Proposta'}
-                          </Link>
+                          {relic.status === 'sold' ? (
+                            <span className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#1A1E26] border border-red-900/40 text-red-400/80 text-xs font-['Manrope'] font-bold uppercase rounded text-center cursor-not-allowed select-none">
+                              <span className="material-symbols-outlined text-sm">lock</span>
+                              {config.btnSoldOut || 'Vendido'}
+                            </span>
+                          ) : (
+                            <Link
+                              href="/checkout"
+                              className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] text-xs font-['Manrope'] font-bold uppercase rounded transition-colors text-center shadow-sm"
+                            >
+                              <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                              {config.btnBuyNow}
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -624,88 +525,11 @@ export default function CatalogPage() {
                 ))}
               </div>
             )}
-
-            {/* Catalog Pagination */}
-            <div className="pt-6 border-t border-[#282E3A] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-['Space_Grotesk']">
-              <div className="text-[#9CA3AF]">
-                EXIBINDO {filteredRelics.length} DE 48 RELÍQUIAS • CARGA CRIPTOGRÁFICA NÓ #04
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled
-                  className="px-3 py-1.5 bg-[#12151B] border border-[#282E3A] text-[#9CA3AF] rounded opacity-50 cursor-not-allowed"
-                >
-                  Anterior
-                </button>
-                <span className="px-3 py-1.5 bg-[#1A1E26] border border-[#f2ca50]/50 text-[#E5C875] font-bold rounded">
-                  1
-                </span>
-                <button className="px-3 py-1.5 bg-[#12151B] border border-[#282E3A] text-[#F4F1EA] hover:border-[#f2ca50] rounded">
-                  2
-                </button>
-                <button className="px-3 py-1.5 bg-[#12151B] border border-[#282E3A] text-[#F4F1EA] hover:border-[#f2ca50] rounded">
-                  3
-                </button>
-                <button className="px-3 py-1.5 bg-[#12151B] border border-[#282E3A] text-[#F4F1EA] hover:text-[#E5C875] rounded">
-                  Próximo
-                </button>
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
       </main>
 
-      {/* 6. FORENSIC PROTOCOLS & CUSTODY NODES BANNER */}
-      <section className="border-t border-[#282E3A] bg-[#12151B] py-8">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-4 p-4 bg-[#08090B] border border-[#282E3A] rounded">
-            <div className="p-2.5 bg-[#1A1E26] border border-[#C59B27]/30 rounded text-[#E5C875]">
-              <span className="material-symbols-outlined text-xl">biotech</span>
-            </div>
-            <div>
-              <h4 className="text-sm font-['Manrope'] font-bold text-[#F4F1EA] mb-1">
-                Espectrometria &amp; DNA Forense
-              </h4>
-              <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                Cada fibra e material têxtil passa por varredura isotópica multiespectral com laudo imutável indexado ao registro do cofre.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 bg-[#08090B] border border-[#282E3A] rounded">
-            <div className="p-2.5 bg-[#1A1E26] border border-[#C59B27]/30 rounded text-[#E5C875]">
-              <span className="material-symbols-outlined text-xl">account_balance</span>
-            </div>
-            <div>
-              <h4 className="text-sm font-['Manrope'] font-bold text-[#F4F1EA] mb-1">
-                Escrow Fiduciário Blindado
-              </h4>
-              <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                Valores são retidos em conta de liquidação bancária na Suíça até a entrega e vistoria pericial física presencial.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 bg-[#08090B] border border-[#282E3A] rounded">
-            <div className="p-2.5 bg-[#1A1E26] border border-[#C59B27]/30 rounded text-[#E5C875]">
-              <span className="material-symbols-outlined text-xl">local_shipping</span>
-            </div>
-            <div>
-              <h4 className="text-sm font-['Manrope'] font-bold text-[#F4F1EA] mb-1">
-                Remessa Blindada Segurada
-              </h4>
-              <p className="text-xs font-['Manrope'] text-[#9CA3AF] leading-relaxed">
-                Transporte internacional em caixa térmica com atmosfera modificada de argônio e escolta armada homologada Lloyd&apos;s of London.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Institutional Footer */}
-      <Footer />
-
-      {/* Direct Image Lightbox Modal */}
+      {/* Modal de Foto em Alta Definição */}
       <ImageModal
         isOpen={modalData.isOpen}
         onClose={() => setModalData({ ...modalData, isOpen: false })}
@@ -713,6 +537,9 @@ export default function CatalogPage() {
         title={modalData.title}
         subtitle={modalData.subtitle}
       />
+
+      {/* Rodapé Oficial */}
+      <Footer />
     </div>
   );
 }
