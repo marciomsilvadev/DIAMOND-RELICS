@@ -472,34 +472,99 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#08090B] text-[#e2e2e6] selection:bg-[#d4af37] selection:text-[#08090B]">
-      {/* 1. Global Navigation Relay Bar */}
-      <RelayBar />
-
-      {/* Main Top Institutional Nav Bar */}
-      <Navbar />
-
-      {/* Header do Painel */}
-      <section className="bg-[#12151B] border-b border-[#282E3A] py-6 px-4 sm:px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-              <span className="text-xs font-['Space_Grotesk'] text-[#f2ca50] tracking-widest uppercase font-semibold">
-                Painel Administrativo Completo
+      {/* Top Bar Unificada e Exclusiva do Painel Administrativo */}
+      <header className="bg-[#0D0F14] border-b border-[#282E3A] sticky top-0 z-40 px-4 sm:px-6 lg:px-12 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          {/* Lado Esquerdo: Marca, Título e Status Nuvem */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/" className="flex items-center gap-2 group" title="Ir para a loja">
+              <span className="font-['Playfair_Display'] font-black text-sm sm:text-base tracking-widest text-[#F4F1EA]">
+                DIAMOND <span className="text-[#f2ca50]">RELICS</span>
               </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
-              Gestão da Loja, Produtos &amp; Editor Visual (CMS)
-            </h1>
-            <p className="text-xs sm:text-sm font-['Manrope'] text-[#9CA3AF] mt-1">
-              Edite qualquer texto da página, renomeie botões e abas, marque produtos como vendidos e gerencie vendas reais em tempo real.
-            </p>
+            </Link>
+
+            <span className="text-[#282E3A] hidden sm:inline">|</span>
+
+            <span className="px-2 py-0.5 rounded bg-[#1A1E26] border border-[#282E3A] text-[10px] sm:text-[11px] font-['Space_Grotesk'] text-[#f2ca50] font-bold tracking-wider uppercase hidden sm:inline">
+              Painel de Gestão
+            </span>
+
+            {/* Status do Banco em Nuvem (Supabase) */}
+            {isSupabaseConfigured() ? (
+              <button
+                type="button"
+                onClick={handleCloudSync}
+                disabled={isSyncing}
+                title="Supabase Conectado. Clique para sincronizar agora."
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-400 text-[11px] font-['Space_Grotesk'] font-semibold transition-colors cursor-pointer"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full bg-emerald-400 ${isSyncing ? 'animate-spin' : 'animate-pulse'}`}></span>
+                <span>{isSyncing ? 'Sincronizando...' : 'Nuvem Ativa'}</span>
+              </button>
+            ) : (
+              <div
+                title="Modo Local"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/40 border border-amber-500/40 text-amber-300 text-[11px] font-['Space_Grotesk'] font-semibold"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>Modo Local</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Card de Sessão e Perfil Logado */}
-            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#08090B] border border-[#282E3A] rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-[#1A1E26] border border-[#f2ca50]/50 overflow-hidden flex items-center justify-center shrink-0">
+          {/* Lado Direito: Ações Diretas + Perfil ÚNICO + ÚNICO Botão de Sair */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Link Ver Loja */}
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#9CA3AF] hover:text-[#F4F1EA] hover:bg-[#1A1E26] rounded border border-transparent hover:border-[#282E3A] transition-colors"
+              title="Abrir vitrine da loja em nova aba"
+            >
+              <span className="material-symbols-outlined text-sm text-[#f2ca50]">storefront</span>
+              <span className="hidden md:inline">Ver Loja</span>
+            </Link>
+
+            {/* Backup Simples (Exportar / Importar) */}
+            <div className="hidden sm:flex items-center bg-[#12151B] border border-[#282E3A] rounded overflow-hidden">
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                title="Baixar backup do acervo (JSON)"
+                className="px-2.5 py-1.5 text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] hover:text-[#F4F1EA] hover:bg-[#1A1E26] transition-colors border-r border-[#282E3A] cursor-pointer"
+              >
+                Exportar
+              </button>
+              <label
+                title="Restaurar backup do acervo (JSON)"
+                className="px-2.5 py-1.5 text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] hover:text-[#F4F1EA] hover:bg-[#1A1E26] transition-colors cursor-pointer"
+              >
+                Importar
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportBackup}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Botão Principal: Adicionar Produto */}
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-3.5 py-1.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm font-bold">add</span>
+              <span>Novo Produto</span>
+            </button>
+
+            {/* Divisor vertical sutil */}
+            <div className="h-5 w-px bg-[#282E3A] mx-1"></div>
+
+            {/* Perfil ÚNICO do Usuário Logado */}
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-[#1A1E26] border border-[#f2ca50]/50 overflow-hidden flex items-center justify-center shrink-0">
                 {session.user.avatar ? (
                   <img
                     src={session.user.avatar}
@@ -512,95 +577,14 @@ export default function AdminPage() {
                   </span>
                 )}
               </div>
-              <div className="text-left text-xs leading-tight">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[#F4F1EA] font-['Space_Grotesk'] truncate max-w-[140px]">
-                    {session.user.name}
-                  </span>
-                  {isUserAdmin ? (
-                    <span className="px-1.5 py-0.2 rounded bg-[#f2ca50]/20 text-[#f2ca50] border border-[#f2ca50]/40 font-bold text-[9px] uppercase tracking-wider">
-                      Admin
-                    </span>
-                  ) : (
-                    <span className="px-1.5 py-0.2 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 font-bold text-[9px] uppercase tracking-wider">
-                      Operador
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] text-[#9CA3AF] font-['Space_Grotesk'] block truncate max-w-[150px]">
-                  {session.user.department || 'Painel da Loja'}
+              <div className="hidden lg:block text-left leading-tight">
+                <span className="font-bold text-xs text-[#F4F1EA] font-['Space_Grotesk'] block max-w-[120px] truncate">
+                  {session.user.name.split(' ')[0]}
                 </span>
               </div>
             </div>
 
-            {/* Indicador de Status do Banco em Nuvem (Supabase) */}
-            {isSupabaseConfigured() ? (
-              <button
-                type="button"
-                onClick={handleCloudSync}
-                disabled={isSyncing}
-                title="Clique para forçar sincronização com o banco de dados na nuvem"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/50 text-emerald-400 text-xs font-['Space_Grotesk'] font-bold transition-colors cursor-pointer"
-              >
-                <span className={`w-2 h-2 rounded-full bg-emerald-400 ${isSyncing ? 'animate-spin' : 'animate-pulse'}`}></span>
-                {isSyncing ? 'Sincronizando...' : 'Nuvem Supabase Ativa'}
-              </button>
-            ) : (
-              <div
-                title="Armazenamento local do navegador ativo. Configure o Supabase para sincronização em nuvem."
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-950/40 border border-amber-500/40 text-amber-300 text-xs font-['Space_Grotesk'] font-bold"
-              >
-                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                Modo Local (Offline)
-              </div>
-            )}
-
-            {/* Ferramentas de Backup Seguro do Catálogo */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleExportBackup}
-                title="Baixar arquivo JSON com todas as peças e fotos cadastradas"
-                className="px-3 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-sm text-[#f2ca50]">download</span>
-                Exportar Backup
-              </button>
-
-              <label
-                title="Importar catálogo salvo em arquivo JSON"
-                className="px-3 py-2 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-sm text-[#f2ca50]">upload</span>
-                Importar Backup
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportBackup}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2.5 bg-[#f2ca50] hover:bg-[#E5C875] text-[#08090B] font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-base">add_circle</span>
-              Adicionar Novo Produto
-            </button>
-
-
-            <Link
-              href="/"
-              className="px-4 py-2.5 bg-[#1A1E26] hover:bg-[#282E3A] border border-[#282E3A] text-[#F4F1EA] font-['Space_Grotesk'] font-semibold text-xs rounded flex items-center gap-1.5 transition-colors"
-              title="Voltar para a Página Inicial da Loja"
-            >
-              <span className="material-symbols-outlined text-base text-[#f2ca50]">storefront</span>
-              Ver Loja ao Vivo
-            </Link>
-
-            {/* BOTÃO PROMINENTE: SAIR DO PAINEL */}
+            {/* ÚNICO Botão de Sair do Painel */}
             <button
               type="button"
               onClick={() => {
@@ -609,15 +593,29 @@ export default function AdminPage() {
                   setSession(null);
                 }
               }}
-              className="px-4 py-2.5 bg-red-950/60 hover:bg-red-900 border border-red-700/80 hover:border-red-500 text-red-200 hover:text-white font-['Space_Grotesk'] font-bold text-xs uppercase rounded flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-              title="Encerrar Sessão e Sair do Painel"
+              className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-950/30 rounded border border-transparent hover:border-red-900/40 transition-colors cursor-pointer"
+              title="Sair do Painel"
             >
-              <span className="material-symbols-outlined text-base text-red-400">logout</span>
-              Sair do Painel
+              <span className="material-symbols-outlined text-lg">logout</span>
             </button>
           </div>
         </div>
+      </header>
+
+      {/* Sub-header Elegante e Limpo */}
+      <section className="bg-[#12151B] border-b border-[#282E3A] py-5 px-4 sm:px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#F4F1EA]">
+              Gestão da Loja &amp; Acervo
+            </h1>
+            <p className="text-xs font-['Manrope'] text-[#9CA3AF] mt-0.5">
+              Edite produtos, personalize banners e textos do CMS, gerencie vendas e operadores em tempo real.
+            </p>
+          </div>
+        </div>
       </section>
+
 
       {/* Métricas Reais da Loja */}
       <section className="bg-[#08090B] border-b border-[#282E3A] py-6 px-4 sm:px-6 lg:px-12">
