@@ -53,17 +53,6 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
     }, 350);
   };
 
-  const handleFillQuickTest = (role: 'admin' | 'operator') => {
-    setErrorMsg('');
-    if (role === 'admin') {
-      setIdentifier('admin@diamondrelics.com');
-      setPassword('admin123');
-    } else {
-      setIdentifier('operador@diamondrelics.com');
-      setPassword('operador123');
-    }
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 relative overflow-hidden bg-[#08090B]">
       {/* Luz ambiente dourada decorativa de fundo */}
@@ -111,9 +100,8 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Campo E-mail / Usuário */}
             <div className="space-y-1.5">
-              <label className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold block flex items-center justify-between">
-                <span>E-mail ou Usuário</span>
-                <span className="text-[10px] text-[#9CA3AF] font-normal">Ex: admin@diamondrelics.com</span>
+              <label className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold block">
+                E-mail ou Usuário
               </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-base">
@@ -123,7 +111,7 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="admin@diamondrelics.com ou operador"
+                  placeholder="seu.email@exemplo.com"
                   autoComplete="username"
                   className="w-full pl-9 pr-3 py-2.5 bg-[#08090B] border border-[#282E3A] rounded-lg text-xs font-['Space_Grotesk'] text-[#F4F1EA] placeholder-[#6B7280] focus:outline-none focus:border-[#f2ca50] transition-colors"
                 />
@@ -134,7 +122,7 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
             <div className="space-y-1.5">
               <label className="text-xs font-['Space_Grotesk'] text-[#F4F1EA] font-semibold block flex items-center justify-between">
                 <span>Senha de Acesso</span>
-                <span className="text-[10px] text-[#9CA3AF] font-normal">Segurança Criptografada</span>
+                <span className="text-[10px] text-[#9CA3AF] font-normal">Criptografia SHA-256</span>
               </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-base">
@@ -180,47 +168,8 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
               )}
             </button>
           </form>
-
-          {/* Atalhos de Preenchimento Rápido para Demonstração */}
-          <div className="pt-4 border-t border-[#282E3A] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-['Space_Grotesk'] text-[#9CA3AF] uppercase font-bold tracking-wider">
-                Acesso Rápido de Teste:
-              </span>
-              <span className="text-[10px] text-[#10B981] font-mono">1-Clique</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillQuickTest('admin')}
-                className="p-2.5 rounded-lg bg-[#08090B] hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#f2ca50] text-left transition-all group"
-              >
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#f2ca50]">
-                  <span className="material-symbols-outlined text-sm">shield_person</span>
-                  <span>Administrador</span>
-                </div>
-                <div className="text-[10px] text-[#9CA3AF] font-mono mt-0.5 group-hover:text-[#F4F1EA]">
-                  admin / admin123
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillQuickTest('operator')}
-                className="p-2.5 rounded-lg bg-[#08090B] hover:bg-[#1A1E26] border border-[#282E3A] hover:border-[#10B981] text-left transition-all group"
-              >
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#10B981]">
-                  <span className="material-symbols-outlined text-sm">badge</span>
-                  <span>Operador</span>
-                </div>
-                <div className="text-[10px] text-[#9CA3AF] font-mono mt-0.5 group-hover:text-[#F4F1EA]">
-                  operador / operador123
-                </div>
-              </button>
-            </div>
-          </div>
         </div>
+
 
         {/* Rodapé do Login: Voltar para a Loja & Segurança */}
         <div className="flex flex-col sm:flex-row items-center justify-between text-xs font-['Space_Grotesk'] text-[#9CA3AF] gap-3 px-2">
