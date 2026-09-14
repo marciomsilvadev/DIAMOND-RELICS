@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS public.site_config (
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  username TEXT,
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   role TEXT DEFAULT 'admin',
@@ -73,6 +74,10 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   last_login TIMESTAMPTZ
 );
+
+-- Migração rápida: adicionar coluna username caso a tabela já exista previamente
+ALTER TABLE public.admin_users ADD COLUMN IF NOT EXISTS username TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS admin_users_username_idx ON public.admin_users (LOWER(username)) WHERE username IS NOT NULL;
 
 -- 5. HABILITAR ROW LEVEL SECURITY (RLS) COM POLÍTICAS DE ACESSO
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
@@ -133,11 +138,12 @@ DROP POLICY IF EXISTS "Public Delete Media" ON storage.objects;
 CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING (bucket_id = 'relics-media');
 
 -- 7. USUÁRIOS ADMINISTRADORES PADRÃO
-INSERT INTO public.admin_users (id, name, email, password, role, department)
+INSERT INTO public.admin_users (id, name, username, email, password, role, department)
 VALUES 
 (
   'usr-admin-marcio',
   'Márcio Silva (Administrador)',
+  'marcio',
   'marcio.msrs@hotmail.com',
   'admin123',
   'admin',
@@ -146,6 +152,7 @@ VALUES
 (
   'usr-admin-master',
   'Roberto Silveira (Curador Chefe)',
+  'admin',
   'admin@diamondrelics.com',
   'admin123',
   'admin',

@@ -29,7 +29,7 @@ import {
   DEFAULT_SITE_CONFIG,
   SiteConfig,
 } from '@/lib/site-config-store';
-import { getCurrentSession, logout, AuthSession } from '@/lib/auth-store';
+import { getCurrentSession, logout, AuthSession, syncUsersFromSupabase } from '@/lib/auth-store';
 import { AdminLoginForm } from '@/components/AdminLoginForm';
 import { UserManagementTab } from '@/components/UserManagementTab';
 
@@ -121,9 +121,12 @@ export default function AdminPage() {
   const handleCloudSync = async () => {
     setIsSyncing(true);
     try {
-      const updated = await syncProductsFromSupabase();
+      const [updated] = await Promise.all([
+        syncProductsFromSupabase(),
+        syncUsersFromSupabase(),
+      ]);
       setProducts(updated);
-      alert('Sincronização com o Supabase concluída com sucesso!');
+      alert('Sincronização com o Supabase (produtos e usuários) concluída com sucesso!');
     } catch (err: any) {
       alert('Erro na sincronização: ' + (err.message || 'Falha de conexão'));
     } finally {
@@ -142,6 +145,7 @@ export default function AdminPage() {
     setSession(getCurrentSession());
     setIsLoadingAuth(false);
     loadData();
+    syncUsersFromSupabase().catch(() => {});
 
     const handleProductsUpdate = () => setProducts(getStoredProducts());
     const handleOrdersUpdate = () => setOrders(getStoredOrders());

@@ -33,7 +33,7 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
     }
   }, []);
 
-  const handleSubmitLogin = (e: React.FormEvent) => {
+  const handleSubmitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -50,8 +50,8 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = login(identifier, password);
+    try {
+      const result = await login(identifier, password);
       setIsLoading(false);
 
       if (result.success && result.session) {
@@ -59,7 +59,10 @@ export function AdminLoginForm({ onLoginSuccess }: AdminLoginFormProps) {
       } else {
         setErrorMsg(result.message);
       }
-    }, 350);
+    } catch {
+      setIsLoading(false);
+      setErrorMsg('Erro inesperado na verificação de acesso. Tente novamente.');
+    }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
