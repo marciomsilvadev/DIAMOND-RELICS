@@ -32,7 +32,6 @@ export function RelayBar() {
     { href: '/catalog', label: config.navCatalog || 'Catálogo de Produtos' },
     { href: '/product', label: config.navProduct || 'Peça em Destaque' },
     { href: '/checkout', label: config.navCheckout || 'Carrinho & Checkout' },
-    { href: '/admin', label: config.navAdmin || 'Painel da Loja' },
   ];
 
   if (config.showTopRelayBar === false) {
@@ -76,24 +75,8 @@ export function RelayBar() {
             </Link>
           );
         })}
-
-        {session && (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirm('Deseja realmente sair e encerrar a sua sessão?')) {
-                logout();
-                setSession(null);
-              }
-            }}
-            className="px-2.5 py-1 rounded text-xs bg-red-950/50 hover:bg-red-900 text-red-300 hover:text-white border border-red-800/60 hover:border-red-500 font-semibold transition-all flex items-center gap-1 shrink-0 ml-1 cursor-pointer"
-            title="Encerrar Sessão (Sair da Conta)"
-          >
-            <span className="material-symbols-outlined text-xs text-red-400">logout</span>
-            <span>Sair</span>
-          </button>
-        )}
       </nav>
     </aside>
   );
+
 }
