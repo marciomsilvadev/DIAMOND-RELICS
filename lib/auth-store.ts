@@ -346,3 +346,100 @@ export function login(
 export function logout(): void {
   saveCurrentSession(null);
 }
+
+/**
+ * Verifica se um e-mail existe no cadastro de usuários
+ */
+export async function checkEmailExists(email: string): Promise<boolean> {
+  const clean = email.trim().toLowerCase();
+  if (!clean) return false;
+
+  const users = getStoredUsers();
+  const foundLocal = users.some(
+    (u) =>
+      u.email.trim().toLowerCase() === clean ||
+      (clean === 'admin' && u.role === 'admin') ||
+      (clean === 'operador' && u.role === 'operator')
+  );
+  if (foundLocal) return true;
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', clean)
+        .maybeSingle();
+      if (data) return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Redefine a senha de um usuário através do e-mail cadastrado
+ */
+export async function resetPasswordByEmail(
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+
+  if (!cleanEmail) {
+    return { success: false, message: 'Por favor, informe seu e-mail cadastrado.' };
+  }
+
+  if (!newPassword || newPassword.length < 4) {
+    return { success: false, message: 'A nova senha deve conter no mínimo 4 caracteres.' };
+  }
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase
+        .from('admin_users')
+        .update({ password: newPassword })
+        .eq('email', cleanEmail);
+    } catch (e) {
+      console.error('Erro ao atualizar senha no Supabase:', e);
+    }
+  }
+
+  const users = getStoredUsers();
+  const exists = users.some(
+    (u) =>
+      u.email.trim().toLowerCase() === cleanEmail ||
+      (cleanEmail === 'admin' && u.role === 'admin') ||
+      (cleanEmail === 'operador' && u.role === 'operator')
+  );
+
+  if (!exists) {
+    return {
+      success: false,
+      message: 'Nenhum usuário cadastrado com este e-mail no sistema.',
+    };
+  }
+
+  const updatedUsers = users.map((u) => {
+    const match =
+      u.email.trim().toLowerCase() === cleanEmail ||
+      (cleanEmail === 'admin' && u.role === 'admin') ||
+      (cleanEmail === 'operador' && u.role === 'operator');
+    if (match) {
+      return { ...u, password: newPassword };
+    }
+    return u;
+  });
+
+  saveStoredUsers(updatedUsers);
+
+  return {
+    success: true,
+    message: 'Senha redefinida com sucesso! Você já pode entrar com sua nova senha.',
+  };
+}
+
